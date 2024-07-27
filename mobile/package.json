@@ -7,7 +7,7 @@
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "vercel-build" : "echo hello world"
+    "vercel-build": "echo hello world"
   },
   "keywords": [],
   "author": "PPK Ormawa HMGP",
@@ -19,6 +19,7 @@
     "googleapis": "^140.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.5.1",
+    "mongoose-sequence": "^6.0.1",
     "nodemon": "^3.1.4"
   }
 }
