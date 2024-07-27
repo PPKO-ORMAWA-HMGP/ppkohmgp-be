@@ -16,7 +16,7 @@ const EducationSchema = new mongoose.Schema(
         },
         date : {
             type : Date,
-            default : Date.now,
+            required : true
         },
         image : {
             type: String

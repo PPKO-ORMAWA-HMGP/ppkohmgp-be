@@ -11,7 +11,10 @@ const NotificationSchema = new mongoose.Schema({
     },
     date : {
         type : Date,
-        default : Date.now
+        required : true
+    },
+    time : {
+        type : String
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,
