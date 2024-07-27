@@ -3,7 +3,13 @@ const mongoose = require("mongoose");
 const UserSchema = new mongoose.Schema({
     username: {
         type: String,
-        required: true
+        required: true,
+        trim: true,
+        unique: true
+    },
+    fullname : {
+        type : String,
+        required : true
     },
     phoneNumber : {
         type: String,
@@ -13,16 +19,20 @@ const UserSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
-        trim:true
+        trim: true
     },
     role : {
         type: String,
-        required: true,
-        enum : ['Client', 'Admin']
+        enum : ['Client', 'Admin-Organik', 'Admin-Anorganik'],
+        default : 'Client'
     },
-    location : {
-        type : String
+    // Untuk bankSampah kayaknya perlu bikin 1 collection lagi
+    bankSampah : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "BankSampah"
     },
+    // Kayaknya perlu bikin collection untuk nampung images
+    // Untuk Client
     organik : [{
         type : mongoose.Schema.Types.ObjectId,
         ref : "Organik"
