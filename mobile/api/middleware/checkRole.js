@@ -6,10 +6,26 @@ exports.protectAdmin = async (req, res, next) => {
     try {
         const token = req.header(process.env.TOKEN_HEADER);
         if (!token) return res.status(401).json({ message: "Access Denied" });
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, { issuer : process.env.TOKEN_ISSUER }, async (err, user) => {
             if (err) return res.status(401).json({ message: "Invalid Token" });
-            const foundUser = await User.findById(user._id);
-            if (foundUser.role !== "Admin-Organik" && foundUser.role !== "Admin-Anorganik" ) return res.status(401).json({ message: "Access Denied" });
+            req.user = await User.findOne({
+                $or:[{
+                    $and: [{
+                            _id: user._id
+                        },
+                        {
+                            role: "Admin-Organik"
+                        }]
+                    }, 
+                    {$and: [{
+                            _id: user._id
+                        }, 
+                        {
+                            role: "Admin-Anorganik"
+                        }]
+                    }]
+                });
+            if (!req.user) return res.status(401).json({ message: "Access Denied" });
             next();
         });
     }
@@ -22,10 +38,10 @@ exports.protectAdminOrganik = async (req, res, next) => {
     try {
         const token = req.header(process.env.TOKEN_HEADER);
         if (!token) return res.status(401).json({ message: "Access Denied" });
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, { issuer : process.env.TOKEN_ISSUER }, async (err, user) => {
             if (err) return res.status(401).json({ message: "Invalid Token" });
-            const foundUser = await User.findById(user._id);
-            if (foundUser.role !== "Admin-Organik") return res.status(401).json({ message: "Access Denied" });
+            req.user = await User.findOne({$and: [{_id: user._id}, {role: "Admin-Organik"}]});
+            if (!req.user) return res.status(401).json({ message: "Access Denied" });
             next();
         });
     }
@@ -40,8 +56,8 @@ exports.protectAdminAnorganik = async (req, res, next) => {
         if (!token) return res.status(401).json({ message: "Access Denied" });
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
             if (err) return res.status(401).json({ message: "Invalid Token" });
-            const foundUser = await User.findById(user._id);
-            if (foundUser.role !== "Admin-Anorganik") return res.status(401).json({ message: "Access Denied" });
+            req.user = await User.findOne({$and: [{_id: user._id}, {role: "Admin-Anorganik"}]});
+            if (!req.user) return res.status(401).json({ message: "Access Denied" });
             next();
         });
     }
@@ -56,8 +72,8 @@ exports.protectClient = async (req, res, next) => {
         if (!token) return res.status(401).json({ message: "Access Denied" });
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
             if (err) return res.status(401).json({ message: "Invalid Token" });
-            const foundUser = await User.findById(user._id);
-            if (foundUser.role !== "Client") return res.status(401).json({ message: "Access Denied" });
+            req.user = await User.findOne({$and: [{_id: user._id}, {role: "Client"}]});
+            if (!req.user) return res.status(401).json({ message: "Access Denied" });
             next();
         });
     }
