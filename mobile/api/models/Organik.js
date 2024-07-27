@@ -9,6 +9,10 @@ const OrganikSchema = new mongoose.Schema({
         type : Number,
         required : true
     },
+    date : {
+        type : Date,
+        required : true
+    }
 })
 
 module.exports = mongoose.model("Organik", OrganikSchema);

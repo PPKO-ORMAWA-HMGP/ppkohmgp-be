@@ -1,14 +1,14 @@
 const mongoose = require ("mongoose");
 
 const AnorganikSchema = new mongoose.Schema({
-    name : {
-        type : String,
-        required : true
-    },
     type: {
         type: String,
         required: true,
-        enum: ['Plastik', 'Kertas', 'Logam', 'Kaca']
+        enum: ['Plastik', 'Kertas', 'Logam', 'Kaca', 'Lain-lain']
+    },
+    description : {
+        type : String,
+        required : true
     },
     mass : {
         type : Number,
@@ -24,8 +24,7 @@ const AnorganikSchema = new mongoose.Schema({
     },
     user : {
         type : mongoose.Schema.Types.ObjectId,
-        ref : "User",
-        required : true
+        ref : "User"
     }
 });
 
