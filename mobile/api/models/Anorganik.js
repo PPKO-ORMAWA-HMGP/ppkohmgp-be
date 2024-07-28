@@ -22,6 +22,9 @@ const AnorganikSchema = new mongoose.Schema({
         type : Date,
         required : true
     },
+    tanggal : {
+        type : String,
+    },
     user : {
         type : mongoose.Schema.Types.ObjectId,
         ref : "User"

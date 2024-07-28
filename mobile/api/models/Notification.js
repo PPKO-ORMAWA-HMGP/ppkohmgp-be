@@ -16,6 +16,11 @@ const NotificationSchema = new mongoose.Schema({
     time : {
         type : String
     },
+    type : {
+        type : String,
+        required : true,
+        enum : ['add', 'penukaran', 'penarikan', 'profile', 'privacy']
+    },
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",

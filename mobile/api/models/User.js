@@ -4,8 +4,7 @@ const UserSchema = new mongoose.Schema({
     username: {
         type: String,
         required: true,
-        trim: true,
-        unique: true
+        trim: true
     },
     fullname : {
         type : String,
@@ -23,12 +22,13 @@ const UserSchema = new mongoose.Schema({
     },
     role : {
         type: String,
-        enum : ['Client', 'Admin-Organik', 'Admin-Anorganik'],
-        default : 'Client'
+        enum : ['Organik','Anorganik','Admin-Organik', 'Admin-Anorganik'],
+        required : true
     },
     // Untuk bankSampah kayaknya perlu bikin 1 collection lagi
     bankSampah : {
         type : mongoose.Schema.Types.ObjectId,
+        required : true,
         ref : "BankSampah"
     },
     // Kayaknya perlu bikin collection untuk nampung images
