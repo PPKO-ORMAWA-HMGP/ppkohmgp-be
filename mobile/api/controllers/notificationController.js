@@ -10,7 +10,10 @@ exports.getNotification = async (req, res) => {
             const diffTime = today - notification.date;
             const diffDays = diffTime / (1000 * 60 * 60 * 24);
             if (diffDays < 1) {
-                notification.time = "Today";
+                notification.time = "hari ini";
+            }
+            else {
+                notification.time = "kemarin";
             }
         });
         res.status(200).json(notifications);

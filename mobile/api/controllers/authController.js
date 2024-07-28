@@ -22,7 +22,7 @@ exports.login = async (req, res) => {
             }, 
             process.env.ACCESS_TOKEN_SECRET,
             { 
-                expiresIn: "5m",
+                expiresIn: "1h",
                 issuer : process.env.TOKEN_ISSUER
             }
         );

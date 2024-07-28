@@ -35,6 +35,7 @@ exports.createAnorganik = async (req, res) => {
                 title: "Penambahan Saldo Anorganik",
                 message: "Saldo Anorganik anda bertambah sebesar Rp." + newAnorganik[i].price,
                 date : Date.now() + 7*60*60*1000,
+                type : "add",
                 user: new mongoose.Types.ObjectId(req.params.id)
             });
             await notification.save();
