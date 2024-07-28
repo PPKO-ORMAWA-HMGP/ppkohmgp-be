@@ -9,11 +9,19 @@ const BankSampahSchema = new mongoose.Schema({
         type : String,
         required : true
     },
-    admins : [{
+    users : [{
         type : mongoose.Schema.Types.ObjectId,
         ref : "User",
         required : true
-    }]
+    }],
+    organik : [{
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "Organik"
+    }],
+    anorganik : [{
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "Anorganik"
+    }],
 });
 
 module.exports = mongoose.model("BankSampah", BankSampahSchema);
