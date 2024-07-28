@@ -12,6 +12,9 @@ const OrganikSchema = new mongoose.Schema({
     date : {
         type : Date,
         required : true
+    },
+    tanggal : {
+        type : String
     }
 })
 
