@@ -66,13 +66,61 @@ exports.protectAdminAnorganik = async (req, res, next) => {
     }
 }
 
+exports.protectOrganik = async (req, res, next) => {
+    try {
+        const token = req.header(process.env.TOKEN_HEADER);
+        if (!token) return res.status(401).json({ message: "Access Denied" });
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
+            if (err) return res.status(401).json({ message: "Invalid Token" });
+            req.user = await User.findOne({$and: [{_id: user._id}, {role: "Organik"}]});
+            if (!req.user) return res.status(401).json({ message: "Access Denied" });
+            next();
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
+exports.protectAnorganik = async (req, res, next) => {
+    try {
+        const token = req.header(process.env.TOKEN_HEADER);
+        if (!token) return res.status(401).json({ message: "Access Denied" });
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
+            if (err) return res.status(401).json({ message: "Invalid Token" });
+            req.user = await User.findOne({$and: [{_id: user._id}, {role: "Anorganik"}]});
+            if (!req.user) return res.status(401).json({ message: "Access Denied" });
+            next();
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}
+
 exports.protectClient = async (req, res, next) => {
     try {
         const token = req.header(process.env.TOKEN_HEADER);
         if (!token) return res.status(401).json({ message: "Access Denied" });
         jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
             if (err) return res.status(401).json({ message: "Invalid Token" });
-            req.user = await User.findOne({$and: [{_id: user._id}, {role: "Client"}]});
+            req.user = await User.findOne({
+                $or:[{
+                    $and: [{
+                            _id: user._id
+                        },
+                        {
+                            role: "Organik"
+                        }]
+                    }, 
+                    {$and: [{
+                            _id: user._id
+                        }, 
+                        {
+                            role: "Anorganik"
+                        }]
+                    }]
+                });
             if (!req.user) return res.status(401).json({ message: "Access Denied" });
             next();
         });
