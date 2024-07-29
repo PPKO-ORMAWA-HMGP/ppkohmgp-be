@@ -10,6 +10,8 @@ exports.createAnorganik = async (req, res) => {
         // Cek User
         const user = await User.findById(req.params.id);
         if (!user) return res.status(404).json({ message: "User not found" });
+        // Cek Role
+        if (user.role !== "Anorganik") return res.status(400).json({ message: "User is not Anorganik" });
         // Cek Bank Sampah
         const bankSampah = await BankSampah.findById(user.bankSampah);
         if (!bankSampah) return res.status(404).json({ message: "Bank Sampah not found" });
@@ -78,3 +80,5 @@ exports.riwayatAnorganik = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+// bikin fungsi untuk withdraw

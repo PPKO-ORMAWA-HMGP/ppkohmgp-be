@@ -15,6 +15,13 @@ const OrganikSchema = new mongoose.Schema({
     },
     tanggal : {
         type : String
+    },
+    image : {
+        type : String
+    },
+    feedback : {
+        type : String,
+        default : "Memenuhi Kriteria"
     }
 })
 

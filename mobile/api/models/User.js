@@ -25,13 +25,15 @@ const UserSchema = new mongoose.Schema({
         enum : ['Organik','Anorganik','Admin-Organik', 'Admin-Anorganik'],
         required : true
     },
-    // Untuk bankSampah kayaknya perlu bikin 1 collection lagi
+    image : {
+        type : String
+    },
+    // Admin dan Client
     bankSampah : {
         type : mongoose.Schema.Types.ObjectId,
         required : true,
         ref : "BankSampah"
     },
-    // Kayaknya perlu bikin collection untuk nampung images
     // Untuk Client
     organik : [{
         type : mongoose.Schema.Types.ObjectId,
