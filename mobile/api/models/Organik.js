@@ -17,7 +17,8 @@ const OrganikSchema = new mongoose.Schema({
         type : String
     },
     image : {
-        type : String
+        type : String,
+        required : true
     },
     feedback : {
         type : String,

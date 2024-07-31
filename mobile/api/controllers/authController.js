@@ -40,7 +40,7 @@ exports.login = async (req, res) => {
         //     }
         // );
         //coba
-        res.status(200).json({ token });
+        res.status(200).json({ token , role: foundUser.role });
     }
     catch (error) {
         res.status(500).json({ message: error.message });
@@ -50,8 +50,8 @@ exports.login = async (req, res) => {
 exports.validateToken = async (req, res) => {
     try {
         const token = req.header(process.env.TOKEN_HEADER);
-        if (!token) return res.status(401).json({ message: "Access Denied" });
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if (!token) return res.status(401).json({ message: "You are not logged in!" });
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err) => {
             if (err) return res.status(401).json({ message: "Invalid Token" });
             res.status(200).json({ message: "Valid Token" });
         });

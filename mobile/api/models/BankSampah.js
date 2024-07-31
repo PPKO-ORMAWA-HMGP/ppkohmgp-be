@@ -11,8 +11,7 @@ const BankSampahSchema = new mongoose.Schema({
     },
     users : [{
         type : mongoose.Schema.Types.ObjectId,
-        ref : "User",
-        required : true
+        ref : "User"
     }],
     organik : [{
         type : mongoose.Schema.Types.ObjectId,
