@@ -49,6 +49,7 @@ exports.createAnorganik = async (req, res) => {
             await BankSampah.findByIdAndUpdate(bankSampah._id, { $push: { anorganik: newAnorganik[i]._id } });
             user.anorganik.push(newAnorganik[i]._id);
             user.notification.push(notification._id);
+            user.balance += newAnorganik[i].price * newAnorganik[i].mass;
             await user.save();
         };
 
