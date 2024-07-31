@@ -28,6 +28,14 @@ const UserSchema = new mongoose.Schema({
     image : {
         type : String
     },
+    balance : {
+        type : Number,
+        default : 0
+    },
+    point : {
+        type : Number,
+        default : 0
+    },
     // Admin dan Client
     bankSampah : {
         type : mongoose.Schema.Types.ObjectId,

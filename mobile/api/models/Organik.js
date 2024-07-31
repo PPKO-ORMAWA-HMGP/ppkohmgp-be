@@ -22,7 +22,8 @@ const OrganikSchema = new mongoose.Schema({
     },
     feedback : {
         type : String,
-        default : "Memenuhi Kriteria"
+        enum : ['Diterima', 'Ditolak', 'Menunggu'],
+        default : 'Menunggu'
     }
 })
 
