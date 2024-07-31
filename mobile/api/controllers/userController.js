@@ -49,3 +49,15 @@ exports.updateUser = async (req,res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+//Untuk liat nasabah dari daftar nasabah di sisi admin
+exports.getUser = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('username fullname phoneNumber');
+        if (!user) return res.status(404).json({ message: "User not found" });
+        res.status(200).json(user);
+    }
+    catch {
+        res.status(500).json({ message: error.message });
+    }
+}
