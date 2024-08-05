@@ -2,28 +2,32 @@ const mongoose = require ("mongoose");
 
 const OrganikSchema = new mongoose.Schema({
     name : {
-        type : String,
-        required : true
+        type : String
     },
     mass : {
-        type : Number,
-        required : true
+        type : Number
     },
     date : {
-        type : Date,
-        required : true
+        type : Date
     },
     tanggal : {
         type : String
     },
     image : {
-        type : String,
-        required : true
+        type : String
     },
-    feedback : {
+    kriteria : {
         type : String,
         enum : ['Diterima', 'Ditolak', 'Menunggu'],
         default : 'Menunggu'
+    },
+    feedback : {
+        type : String,
+        default : ' '
+    },
+    user : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "User"
     }
 })
 
