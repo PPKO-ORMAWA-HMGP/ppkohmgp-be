@@ -19,10 +19,11 @@ app.get("/", (req, res) => {
 //Routes
 app.use("/auth", require("./api/routes/authRoute"));
 app.use("/user", require("./api/routes/userRoute"));
-app.use("/education", require("./api/routes/educationRoute"));
 app.use("/anorganik", require("./api/routes/anorganikRoute"));
+app.use("/organik", require("./api/routes/organikRoute"));
 app.use("/notification", require("./api/routes/notificationRoute"));
 app.use("/banksampah", require("./api/routes/banksampahRoute"));
+app.use("/education", require("./api/routes/educationRoute"));
 
 //Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI,
