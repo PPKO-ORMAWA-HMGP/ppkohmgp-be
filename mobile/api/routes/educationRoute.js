@@ -3,11 +3,13 @@ const { protectAdmin } = require("../middleware/checkRole");
 const express = require('express');
 const router = express.Router();
 
-router.get('/', getAllEducation);
-router.get('/:id', getEducation);
+router.route('/') 
+    .get(getAllEducation)
+    .post(protectAdmin, createEducation);
 
-router.post('/', protectAdmin, createEducation);
-router.patch('/:id', protectAdmin, updateEducation);
-router.delete('/:id', protectAdmin, deleteEducation);
+router.route('/:id')
+    .patch(protectAdmin, updateEducation)
+    .get(getEducation)
+    .delete(protectAdmin, deleteEducation);
 
 module.exports = router;
