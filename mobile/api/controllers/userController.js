@@ -87,12 +87,19 @@ exports.getUser = async (req, res) => {
                 path: 'anorganik',
                 select : 'description price date mass'
             })
-            .select('fullname phoneNumber username -_id');
+            .select('fullname username -_id');
+        user.anorganik.forEach(anorganik => {
+            anorganik.price = anorganik.price * anorganik.mass;
+        })
+        const filteredAnorganik = user.anorganik.map(item => ({
+            description: item.description,
+            mass: item.mass,
+            price: item.price
+          }));
         const filteredUser = {
             fullname: user.fullname,
-            phoneNumber: user.phoneNumber,
             username: user.username,
-            anorganik: user.anorganik
+            anorganik: filteredAnorganik
         }
         let totalAnorganikMass = 0;
         for (i = 0; i < user.anorganik.length; i++) {

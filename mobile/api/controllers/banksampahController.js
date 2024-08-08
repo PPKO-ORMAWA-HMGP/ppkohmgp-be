@@ -1,5 +1,7 @@
 const BankSampah = require('../models/BankSampah');
+const moment = require('moment');
 
+//untuk daftar nasabah
 exports.getAllUsers = async (req, res) => {
     try {
         const banksampah = await BankSampah
@@ -7,7 +9,7 @@ exports.getAllUsers = async (req, res) => {
             .populate({
                 path : 'users',
                 match : {$or:[{ role : 'Organik' } , {role : "Anorganik"}]},
-                select : 'username fullname phoneNumber'
+                select : 'username fullname'
             });
         if (!banksampah) return res.status(404).json({ message: "No users found" });
         res.status(200).json(banksampah.users);
@@ -17,6 +19,7 @@ exports.getAllUsers = async (req, res) => {
     }
 }
 
+//untuk verifikasi organik
 exports.getAllUsersOrganik = async (req, res) => {
     try {   
         const banksampah = await BankSampah
@@ -25,7 +28,7 @@ exports.getAllUsersOrganik = async (req, res) => {
                 path : 'users',
                 match : { role : 'Organik' },
                 options : {sort : {date : -1}},
-                select : 'username fullname phoneNumber'
+                select : 'username'
             });
         if (!banksampah) return res.status(404).json({ message: "No users found" });
         banksampah.users.forEach (user => {
@@ -40,6 +43,7 @@ exports.getAllUsersOrganik = async (req, res) => {
     }
 }
 
+//untuk verifikasi anorganik
 exports.getAllUsersAnorganik = async (req, res) => {
     try {
         const banksampah = await BankSampah
@@ -47,7 +51,7 @@ exports.getAllUsersAnorganik = async (req, res) => {
             .populate({
                 path : 'users',
                 match : { role : 'Anorganik' },
-                select : 'username fullname phoneNumber'
+                select : 'fullname'
             });
         if (!banksampah) return res.status(404).json({ message: "No users found" });
         res.status(200).json(banksampah.users);
@@ -57,17 +61,17 @@ exports.getAllUsersAnorganik = async (req, res) => {
     }
 }
 
-exports.getRecapPerPeriod = async (req, res) => {
+exports.getRecapbyDate = async (req, res) => {
     try {
-        const banksampah = await BankSampah.findById(req.user.bankSampah)
-            .populate(
-                {
-                    path : 'users',
-                    select : 'mass date'
-                })
-            .select('-name -address')
+        const date = req.body;
+        const banksampah = await BankSampah
+            .findById(req.user.bankSampah)
+            .populate({
+                path : 'users',
+                select : 'fullname role'
+            });
         if (!banksampah) return res.status(404).json({ message: "No users found" });
-        res.status(200).json({jumlah : `${banksampah.users.length} Orang`});
+        res.status(200).json(banksampah.users);
     }
     catch (error) {
         res.status(500).json({ message: error.message });
