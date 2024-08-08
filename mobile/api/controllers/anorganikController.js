@@ -15,7 +15,7 @@ exports.createAnorganik = async (req, res) => {
         if (user.role !== "Anorganik") return res.status(400).json({ message: "User is not Anorganik" });
         // Cek Bank Sampah
         const bankSampah = await BankSampah.findById(req.user.bankSampah);
-        if (user.bankSampah !== bankSampah._id) return res.status(400).json({ message: "User is not registered to this Bank Sampah" });
+        if (user.bankSampah.toString() !== bankSampah._id.toString()) return res.status(400).json({ message: "User is not registered to this Bank Sampah" });
         if (!bankSampah) return res.status(404).json({ message: "Bank Sampah not found" });
         const buffer = []; // untuk nampung data sampah anorganik
 
