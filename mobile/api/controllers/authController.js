@@ -40,7 +40,7 @@ exports.login = async (req, res) => {
         //     }
         // );
         //coba
-        res.status(200).json({ token , role: foundUser.role });
+        res.status(200).json({ token , role: foundUser.role , fullname: foundUser.fullname });
     }
     catch (error) {
         res.status(500).json({ message: error.message });
