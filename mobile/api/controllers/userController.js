@@ -5,34 +5,39 @@ const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 
 exports.registerUser = async (req, res) => {
+    const { username, fullname, phoneNumber, password, bankSampah, role } = req.body;
+    let session;
+    //check
+    if (!username || !fullname || !phoneNumber || !password || !bankSampah || !role) return res.status(400).json({ message: "Please fill all fields" });
+    if (password.length < 6) return res.status(400).json({ message: "Password must be at least 6 characters" });
+    if (typeof(phoneNumber) !== "string") return res.status(400).json({ message: "Phone number must be a string" });
+    if (phoneNumber.length < 10 || phoneNumber.length >= 13) return res.status(400).json({ message: "Phone number must be between 10 and 13 characters" });
+    if (phoneNumber[0] !== "0") return res.status(400).json({ message: "Phone number must start with 0" });
+    if (phoneNumber.match(/[^0-9]/)) return res.status(400).json({ message: "Phone number must contain only numbers" });
+
+    // kalo user sudah ada
+    const user = await User.findOne({ phoneNumber });
+    if (user) return res.status(400).json({ message: "User already exists" });
+    // kalo bank sampah tidak ada
+    const banksampah = await BankSampah.findOne({ name : bankSampah });
+    if (!banksampah) return res.status(404).json({ message: "Bank Sampah not found" });
     try {
-        const { username, fullname, phoneNumber, password, bankSampah, role } = req.body;
-        
-        //check
-        if (!username || !fullname || !phoneNumber || !password || !bankSampah || !role) return res.status(400).json({ message: "Please fill all fields" });
-        if (password.length < 6) return res.status(400).json({ message: "Password must be at least 6 characters" });
-        if (typeof(phoneNumber) !== "string") return res.status(400).json({ message: "Phone number must be a string" });
-        if (phoneNumber.length < 10 || phoneNumber.length >= 13) return res.status(400).json({ message: "Phone number must be between 10 and 13 characters" });
-        if (phoneNumber[0] !== "0") return res.status(400).json({ message: "Phone number must start with 0" });
-        if (phoneNumber.match(/[^0-9]/)) return res.status(400).json({ message: "Phone number must contain only numbers" });
-
-        // kalo user sudah ada
-        const user = await User.findOne({ phoneNumber });
-        if (user) return res.status(400).json({ message: "User already exists" });
-        // kalo bank sampah tidak ada
-        const banksampah = await BankSampah.findOne({ name : bankSampah });
-        if (!banksampah) return res.status(404).json({ message: "Bank Sampah not found" });
-
+        session = await mongoose.startSession();
+        session.startTransaction();
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = new User({ 
             username, fullname, phoneNumber, password: hashedPassword, role , bankSampah: banksampah._id
         });
         await newUser.save();
         await BankSampah.findByIdAndUpdate(banksampah._id, { $push: { users: newUser._id } });
+        await session.commitTransaction();
         res.status(201).json({ message: "User registered successfully" });
     }
     catch (error) {
         res.status(500).json({ message: error.message });
+    }
+    finally {
+        if (session) session.endSession();
     }
 }
 
@@ -53,13 +58,16 @@ exports.loadUser = async (req, res) => {
 }
 
 exports.updateUser = async (req,res) => {
+    let session;
+    const { username, fullname, phoneNumber } = req.body;
+    if (!username || !fullname || !phoneNumber) return res.status(400).json({ message: "Please fill all fields" });
+    if (typeof(phoneNumber) !== "string") return res.status(400).json({ message: "Phone number must be a string" });
+    if (phoneNumber.length < 10 || phoneNumber.length >= 13) return res.status(400).json({ message: "Phone number must be between 10 and 13 characters" });
+    if (phoneNumber[0] !== "0") return res.status(400).json({ message: "Phone number must start with 0" });
+    if (phoneNumber.match(/[^0-9]/)) return res.status(400).json({ message: "Phone number must contain only numbers" });
     try {
-        const { username, fullname, phoneNumber } = req.body;
-        if (!username || !fullname || !phoneNumber) return res.status(400).json({ message: "Please fill all fields" });
-        if (typeof(phoneNumber) !== "string") return res.status(400).json({ message: "Phone number must be a string" });
-        if (phoneNumber.length < 10 || phoneNumber.length >= 13) return res.status(400).json({ message: "Phone number must be between 10 and 13 characters" });
-        if (phoneNumber[0] !== "0") return res.status(400).json({ message: "Phone number must start with 0" });
-        if (phoneNumber.match(/[^0-9]/)) return res.status(400).json({ message: "Phone number must contain only numbers" });
+        session = await mongoose.startSession();
+        session.startTransaction();
         const updatedUser = await User.findByIdAndUpdate(req.user._id, { username, fullname, phoneNumber}, { new: true });
         if (updatedUser) {
             const notification = new Notification({
@@ -70,12 +78,16 @@ exports.updateUser = async (req,res) => {
                 user: new mongoose.Types.ObjectId(req.user.id)
             });
             await notification.save();
+            await session.commitTransaction();
             return res.status(200).json({ message: "User updated successfully" });
         }
         else return res.status(404).json({ message: "User not found" });
     }
     catch (error) {
         res.status(500).json({ message: error.message });
+    }
+    finally {
+        if (session) session.endSession();
     }
 }
 

@@ -1,15 +1,23 @@
 const Education = require("../models/Education");
+const mongoose = require("mongoose");
 
 exports.createEducation = async (req, res) => {
+    let session;
+    const { title, content, synopsis } = req.body;
+    if (!title || !content || !synopsis) return res.status(400).json({ message: "Please fill all fields" });
+    const newEducation = new Education({ title, content, synopsis });
     try {
-        const { title, content, synopsis } = req.body;
-        if (!title || !content || !synopsis) return res.status(400).json({ message: "Please fill all fields" });
-        const newEducation = new Education({ title, content, synopsis });
+        session = await mongoose.startSession();
+        session.startTransaction();
         await newEducation.save();
+        await session.commitTransaction();
         res.status(201).json({ message: "Education created successfully" });
     }
     catch (error) {
         res.status(500).json({ message: error.message });
+    }
+    finally {
+        if (session) session.endSession();
     }
 }
 
@@ -35,25 +43,39 @@ exports.getEducation = async (req, res) => {
 }
 
 exports.updateEducation = async (req, res) => {
+    let session;
+    const { title, content, synopsis } = req.body;
+    if (!title || !content || !synopsis) return res.status(400).json({ message: "Please fill all fields" });
     try {
-        const { title, content, synopsis } = req.body;
-        if (!title || !content || !synopsis) return res.status(400).json({ message: "Please fill all fields" });
+        session = await mongoose.startSession();
+        session.startTransaction();
         const result = await Education.findByIdAndUpdate(req.params.id, { title, content, synopsis });
         if (!result) return res.status(404).json({ message: "Education not found" });
+        await session.commitTransaction();
         res.status(200).json({ message: "Education updated successfully" });
     }
     catch (error) {
         res.status(500).json({ message: error.message });
     }
+    finally {
+        if (session) session.endSession();
+    }
 }
 
 exports.deleteEducation = async (req, res) => {
+    let session;
     try {
+        session = await mongoose.startSession();
+        session.startTransaction();
         const result = await Education.findByIdAndDelete(req.params.id);
         if (!result) return res.status(400).json({ message: "Already deleted" });
+        await session.commitTransaction();
         res.status(204).json({ message: "Education deleted successfully" });
     }
     catch (error) {
         res.status(500).json({ message: error.message });
+    }
+    finally {
+        if (session) session.endSession();
     }
 }
