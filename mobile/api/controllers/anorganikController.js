@@ -44,7 +44,7 @@ exports.createAnorganik = async (req, res) => {
         for (let i = 0; i < newAnorganik.length; i++) {
             const notification = new Notification({
                 title: "Sampah anorganik terkumpul",
-                message:`Saldo Anorganik anda bertambah sebesar Rp. + ${newAnorganik[i].price * newAnorganik[i].mass}`,
+                message:`Saldo Anorganik anda bertambah sebesar Rp.${newAnorganik[i].price * newAnorganik[i].mass}`,
                 date : Date.now() + 7*60*60*1000,
                 type : "add",
                 user: new mongoose.Types.ObjectId(req.params.id)
@@ -53,7 +53,7 @@ exports.createAnorganik = async (req, res) => {
             await BankSampah.findByIdAndUpdate(bankSampah._id, { $push: { anorganik: newAnorganik[i]._id } });
             user.anorganik.push(newAnorganik[i]._id);
             user.notification.push(notification._id);
-            user.balance += (newAnorganik[i].price * newAnorganik[i].mass);
+            user.balance += newAnorganik[i].price * newAnorganik[i].mass;
             await user.save();
         };
         await session.commitTransaction();
