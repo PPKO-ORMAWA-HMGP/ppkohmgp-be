@@ -50,13 +50,21 @@ exports.registerUser = async (req, res) => {
 // butuh riwayat anorganik dan organik
 exports.loadUser = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id)
-        .populate({
-                path : 'organik',
-            })
-        .select('username balance point -_id')
-        if (!user) return res.status(404).json({ message: "User not found" });
-        res.status(200).json(user);
+        if (req.user.role === "Anorganik") {
+            const anorganikuser = {
+                username: req.user.username,
+                balance: req.user.balance
+            }
+            res.status(200).json(anorganikuser);
+        }
+        else if (req.user.role === "Organik") {
+            const organikUser = {
+                username: req.user.username,
+                point: req.user.point
+            }
+            res.status(200).json(organikUser);
+        }
+        else return res.status(400).json({ message: "Invalid role" });
     }
     catch (error) {
             res.status(500).json({ message: error.message });
