@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const moment = require('moment');
+const {convertDatetoDayMonthYear} = require('../services/convertDatetoTanggal');
 require('dotenv').config();
 
 exports.login = async (req, res) => {
@@ -27,11 +27,7 @@ exports.login = async (req, res) => {
                 issuer : process.env.TOKEN_ISSUER
             }
         );
-
-        const today = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        const formattedDate = moment.utc(today).format('DD MMMM YYYY');
-        const expiredDate = formattedDate.replace("January", "Januari").replace("February", "Februari").replace("March", "Maret").replace("April", "April").replace("May", "Mei").replace("June", "Juni").replace("July", "Juli").replace("August", "Agustus").replace("September", "September").replace("October", "Oktober").replace("November", "November").replace("December", "Desember");
-
+        const expiredDate = convertDatetoDayMonthYear(Date.now() + 175 * 60 * 60 * 1000);
         res.status(200).json({ username : foundUser.username, fullname: foundUser.fullname, role: foundUser.role , token , expiredDate });
     }
     catch (error) {

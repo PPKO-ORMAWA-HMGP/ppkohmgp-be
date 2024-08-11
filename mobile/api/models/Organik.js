@@ -23,15 +23,13 @@ const OrganikSchema = new mongoose.Schema({
     },
     type : {
         type : String,
-        enum : ['Tambah Poin', 'Tukar Poin'],
-        default : 'Organik'
+        enum : ['Tambah Poin', 'Tukar Poin']
     },
     price : {
         type : String
     },
     feedback : {
-        type : String,
-        default : ' '
+        type : String
     },
     user : {
         type : mongoose.Schema.Types.ObjectId,
