@@ -1,5 +1,5 @@
 const BankSampah = require('../models/BankSampah');
-const moment = require('moment');
+const {convertDatetoMonthYear} = require('../services/convertDatetoTanggal');
 
 //untuk daftar nasabah
 exports.getAllUsers = async (req, res) => {
@@ -72,34 +72,42 @@ exports.getAllUsersAnorganik = async (req, res) => {
 }
 
 exports.getRecapbyDate = async (req, res) => {
-    try {
-        const { date } = req.body;
-        if (!date) return res.status(404).json({ message: "Please fill the field!" });
-        const banksampah = await BankSampah.findById(req.user.bankSampah)
-            .populate({
-                path : 'anorganik',
-                select : 'price description mass date'
+    const {type} = req.query;
+    if (!type) return res.status(404).json({ message: "Please provide type" });
+    if (type === "anorganik") {
+        try {
+            const { date } = req.body;
+            if (!date) return res.status(404).json({ message: "Please fill the field!" });
+            const banksampah = await BankSampah.findById(req.user.bankSampah)
+                .populate({
+                    path : 'anorganik',
+                    select : 'price description mass date'
+                });
+                
+            let totalmass = 0;
+            banksampah.anorganik.forEach(anorganik => {
+                anorganik.tanggal = convertDatetoMonthYear(anorganik.date);
+                anorganik.price = anorganik.price * anorganik.mass;
+                totalmass += anorganik.mass;
             });
             
-        let totalmass = 0;
-        banksampah.anorganik.forEach(anorganik => {
-            const formattedDate = moment.utc(anorganik.date).format('MMMM YYYY');
-            const indonesianDate = formattedDate.replace("January", "Januari").replace("February", "Februari").replace("March", "Maret").replace("April", "April").replace("May", "Mei").replace("June", "Juni").replace("July", "Juli").replace("August", "Agustus").replace("September", "September").replace("October", "Oktober").replace("November", "November").replace("December", "Desember");
-            anorganik.tanggal = indonesianDate;
-            anorganik.price = anorganik.price * anorganik.mass;
-            totalmass += anorganik.mass;
-        });
-        
-        const filteredAnorganik = banksampah.anorganik.filter(anorganik => anorganik.tanggal === date);
-        if (filteredAnorganik.length === 0) return res.status(404).json({ message: "No data found" });
-        const result = filteredAnorganik.map(item => ({
-            description: item.description,
-            mass: item.mass,
-            price: item.price
-        }));
-        res.status(200).json({result, totalmass});
+            const filteredAnorganik = banksampah.anorganik.filter(anorganik => anorganik.tanggal === date);
+            if (filteredAnorganik.length === 0) return res.status(404).json({ message: "No data found" });
+            const result = filteredAnorganik.map(item => ({
+                description: item.description,
+                mass: item.mass,
+                price: item.price
+            }));
+            res.status(200).json({result, totalmass});
+        }
+        catch (error) {
+            res.status(500).json({ message: error.message });
+        }
     }
-    catch (error) {
-        res.status(500).json({ message: error.message });
+    else if (type === "organik") {
+
+    }
+    else {
+        res.status(404).json({ message: "Please provide valid type" });
     }
 }
