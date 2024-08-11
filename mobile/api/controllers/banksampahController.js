@@ -2,6 +2,7 @@ const BankSampah = require('../models/BankSampah');
 const {convertDatetoMonthYear} = require('../services/convertDatetoTanggal');
 
 //untuk daftar nasabah
+// dah bener
 exports.getAllUsers = async (req, res) => {
     try {
         const banksampah = await BankSampah
@@ -19,7 +20,8 @@ exports.getAllUsers = async (req, res) => {
     }
 }
 
-//untuk verifikasi organik
+//untuk nampilin data verifikasi organik
+// dah bener
 exports.getAllUsersOrganik = async (req, res) => {
     try {   
         const banksampah = await BankSampah
@@ -53,7 +55,8 @@ exports.getAllUsersOrganik = async (req, res) => {
     }
 }
 
-//untuk verifikasi anorganik
+//untuk nampilin data verifikasi anorganik
+// dah bener
 exports.getAllUsersAnorganik = async (req, res) => {
     try {
         const banksampah = await BankSampah
@@ -71,43 +74,35 @@ exports.getAllUsersAnorganik = async (req, res) => {
     }
 }
 
+//untuk nampilin data rekapan bulan ini
+// dah bener
 exports.getRecapbyDate = async (req, res) => {
-    const {type} = req.query;
-    if (!type) return res.status(404).json({ message: "Please provide type" });
-    if (type === "anorganik") {
-        try {
-            const { date } = req.body;
-            if (!date) return res.status(404).json({ message: "Please fill the field!" });
-            const banksampah = await BankSampah.findById(req.user.bankSampah)
-                .populate({
-                    path : 'anorganik',
-                    select : 'price description mass date'
-                });
-                
-            let totalmass = 0;
-            banksampah.anorganik.forEach(anorganik => {
-                anorganik.tanggal = convertDatetoMonthYear(anorganik.date);
-                anorganik.price = anorganik.price * anorganik.mass;
-                totalmass += anorganik.mass;
+    try {
+        const { date } = req.body;
+        if (!date) return res.status(404).json({ message: "Please fill the field!" });
+        const banksampah = await BankSampah.findById(req.user.bankSampah)
+            .populate({
+                path : type,
+                select : 'price type mass date'
             });
             
-            const filteredAnorganik = banksampah.anorganik.filter(anorganik => anorganik.tanggal === date);
-            if (filteredAnorganik.length === 0) return res.status(404).json({ message: "No data found" });
-            const result = filteredAnorganik.map(item => ({
-                description: item.description,
-                mass: item.mass,
-                price: item.price
-            }));
-            res.status(200).json({result, totalmass});
-        }
-        catch (error) {
-            res.status(500).json({ message: error.message });
-        }
+        let totalmass = 0;
+        banksampah.anorganik.forEach(anorganik => {
+            anorganik.tanggal = convertDatetoMonthYear(anorganik.date);
+            anorganik.price = anorganik.price * anorganik.mass;
+            totalmass += anorganik.mass;
+        });
+        
+        const filteredAnorganik = banksampah.anorganik.filter(anorganik => anorganik.tanggal === date);
+        if (filteredAnorganik.length === 0) return res.status(404).json({ message: "No data found" });
+        const result = filteredAnorganik.map(item => ({
+            type: item.type,
+            mass: item.mass,
+            price: item.price
+        }));
+        res.status(200).json({result, totalmass});
     }
-    else if (type === "organik") {
-
-    }
-    else {
-        res.status(404).json({ message: "Please provide valid type" });
+    catch (error) {
+        res.status(500).json({ message: error.message });
     }
 }
