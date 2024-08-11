@@ -12,6 +12,7 @@ const validatePhoneNumber = (phoneNumber) => {
     return true;
 }
 
+// dah bener
 exports.registerUser = async (req, res) => {
     const { username, fullname, phoneNumber, password, bankSampah, role } = req.body;
     let session;
@@ -47,7 +48,8 @@ exports.registerUser = async (req, res) => {
     }
 }
 
-// butuh riwayat anorganik dan organik
+// untuk nampilin data di dashboard
+// dah bener
 exports.loadUser = async (req, res) => {
     try {
         if (req.user.role === "Anorganik") {
@@ -71,6 +73,7 @@ exports.loadUser = async (req, res) => {
     }
 }
 
+//belum dicoba
 exports.updateUser = async (req,res) => {
     let session;
     const { username, fullname, phoneNumber } = req.body;
@@ -102,11 +105,11 @@ exports.updateUser = async (req,res) => {
     }
 }
 
-//Untuk liat nasabah dari daftar nasabah di sisi admin
+//Untuk liat rekap nasabah dari daftar nasabah di sisi admin
+// dah bener
 exports.getUser = async (req, res) => {
-    const {type} = req.query;
-    if (!type) return res.status(400).json({ message: "Please provide type" });
-    if (type === "anorganik") {
+    const role = req.user.role;
+    if (role === "Admin-Anorganik") {
         try {
             const user = await User.findById(req.params.id)
                 .populate({
@@ -138,8 +141,19 @@ exports.getUser = async (req, res) => {
             res.status(500).json({ message: error.message });
         }
     }
-    else if (type === "organik") {
-
+    else if (role === "Admin-Organik") {
+        try {
+            const user = await User.findById(req.params.id)
+                .populate({
+                    path : 'organik',
+                    select : 'kriteria',
+                    match : { kriteria : 'Diterima' }
+                })
+            res.status(200).send(`${user.organik.length} kali`);
+        }
+        catch (error) {
+            res.status(500).json({ message: error.message });
+        }  
     }
     else return res.status(400).json({ message: "Please provide valid type" });
 }

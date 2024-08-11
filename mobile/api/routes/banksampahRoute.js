@@ -1,5 +1,5 @@
 const {getAllUsers, getAllUsersAnorganik, getAllUsersOrganik, getRecapbyDate} = require("../controllers/banksampahController");
-const {protectAdminAnorganik, protectAdminOrganik, protectAnorganik, protectOrganik, protectAdmin} = require("../middleware/checkRole");
+const {protectAdminAnorganik, protectAdminOrganik, protectAdmin} = require("../middleware/checkRole");
 const express = require('express');
 const router = express.Router();
 

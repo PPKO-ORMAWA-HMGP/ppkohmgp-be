@@ -8,17 +8,18 @@ const {convertDatetoDayMonthYear} = require('../services/convertDatetoTanggal');
 const mongoose = require("mongoose");
 require("dotenv").config();
 
+//dah bener
 exports.createOrganik = async (req, res) => {
     let session;
     const banksampah = await BankSampah.findById(req.user.bankSampah);
     if (!banksampah) return res.status(404).json({ message: "Bank Sampah not found" });
-    const [image] = req.files;
-    if (!image) return res.status(400).json({ message: "Please select at least one image!" });
+    const {files} = req;
+    if (files.length === 0) return res.status(400).json({ message: "Please select at least one image!" });
     try {
         session = await mongoose.startSession();
         session.startTransaction();
-        const response = await uploadFile(tanggal, req.user.fullname, image);
         const tanggal = convertDatetoDayMonthYear(Date.now() + 7 * 60 * 60 * 1000);
+        const response = await uploadFile(tanggal, req.user.fullname, files[0]);
         const organik = new Organik({
             image : response.id,
             date: Date.now() + 7 * 60 * 60 * 1000,
@@ -39,31 +40,51 @@ exports.createOrganik = async (req, res) => {
     }
 }
 
+//dah bener
 exports.getLinkImage = async (req, res) => {
-    const organik = await Organik.findById(req.params.id);
-    if (!organik) return res.status(404).json({ message: "Organik not found" });
-    const banksampah = await BankSampah.findById(req.user.bankSampah);
-    if (!banksampah) return res.status(404).json({ message: "Bank Sampah not found" });
-    res.status(200).json({ link: generateLink(organik.image) });
+    const user = await User.findById(req.params.id)
+        .select("role organik -_id")
+        .populate({
+            path : "organik",
+            select : "kriteria image date",
+            match : { kriteria : "Menunggu" },
+            options : { sort : { date : -1 }}
+        });
+    if (user.role !== "Organik") return res.status(400).json({ message: "User is not an Organik" });
+    if (user.organik.length === 0) return res.status(204).json({ message: "No Images Found" });
+    console.log(user.organik);
+    const data = [];
+    user.organik.forEach(organik => {
+        const link = generateLink(organik.image);
+        data.push({
+            link,
+            _id: organik._id,
+        });
+    });
+    console.log(data)
+    res.status(200).send(data);
 }
 
+//dah bener
 exports.verifyOrganik = async (req, res) => {
     let session;
-    const organik = await Organik.findById(req.params.id);
+    const {id} = req.params;
+    const { feedback } = req.body;
+    const organik = await Organik.findById(id);
     if (!organik) return res.status(404).json({ message: "Organik not found" });
     const banksampah = await BankSampah.findById(req.user.bankSampah);
     if (!banksampah) return res.status(404).json({ message: "Bank Sampah not found" });
-    if(organik.kriteria === "Diterima") return res.status(400).json({ message: "Organik already verified" });
+    if (organik.kriteria === "Diterima") return res.status(400).json({ message: "Organik already verified" });
+    if (organik.kriteria === "Ditolak") return res.status(400).json({ message: "Organik already rejected" });
 
-    const { feedback } = req.body;
     if (!feedback) {
         try {
             session = await mongoose.startSession();
             session.startTransaction();
             organik.kriteria = "Diterima";
-            organik.price = "+ 1 Poin";
-            await Organik.findByIdAndUpdate(req.params.id, { kriteria: "Diterima", price: "+ 1 Poin" });
-            await Notification.create({
+            organik.price = "+1 Poin";
+            await Organik.findByIdAndUpdate(req.params.id, { kriteria: "Diterima", price: "+1 Poin" });
+            const notification = await Notification.create({
                 title: "Sampah organik terkumpul",
                 message: "Poin organik berhasil didapatkan",
                 date: Date.now() + 7 * 60 * 60 * 1000,
@@ -88,7 +109,7 @@ exports.verifyOrganik = async (req, res) => {
             organik.kriteria = "Ditolak";
             organik.feedback = feedback;
             await Organik.findByIdAndUpdate(req.params.id, { kriteria: "Ditolak", feedback });
-            await Notification.create({
+            const notification = await Notification.create({
                 title: "Sampah organik gagal terkumpul",
                 message: "Sampah tidak memenuhi kriteria organik",
                 date: Date.now() + 7 * 60 * 60 * 1000,
@@ -108,17 +129,20 @@ exports.verifyOrganik = async (req, res) => {
     }
 }
 
+//untuk nampilin riwayat di page riwayat dan dashboard user
+//dah bener
 exports.riwayatOrganik = async (req, res) => {
     try {
-        const organiks = await Organik.find({ user: req.user.id })
-            .select("kriteria -__v")
-            .sort({ date: -1 });
+        const organiks = await Organik.find({user: req.user._id, kriteria: "Diterima"})
+        .select('date tanggal kriteria type price')
+        .sort({date: -1});
+        if (organiks.length === 0) return res.status(204).json({ message: "No organik found" });
         organiks.forEach(organik => {
-            organik.kriteria = "Tambah Poin";
+            organik.type = "Tambah Poin";
+            organik.price = "+1 Poin";
             organik.tanggal = convertDatetoDayMonthYear(organik.date);
-            organik.price = "+ 1 Poin";
         });
-        res.status(200).json(organik);
+        res.status(200).json(organiks);
     }
     catch (error) {
         res.status(500).json({ message: error.message });

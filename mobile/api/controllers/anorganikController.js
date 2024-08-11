@@ -6,6 +6,7 @@ const {convertDatetoDayMonthYear} = require('../services/convertDatetoTanggal');
 
 const mongoose = require('mongoose');
 
+// dah bener
 exports.createAnorganik = async (req, res) => {
     let session;
     // Cek User
@@ -68,8 +69,8 @@ exports.createAnorganik = async (req, res) => {
     }
 }
 
-// Tambah Saldo Kurang Saldo (done)
-// Organik Tambah Poin Tukar Poin
+// untuk nampilin riwayat di page riwayat dan dashboard user
+// dah bener
 exports.riwayatAnorganik = async (req, res) => {
     try {
         const anorganiks = await Anorganik.find({user : req.user.id})
