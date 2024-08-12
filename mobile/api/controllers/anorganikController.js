@@ -2,7 +2,7 @@ const Anorganik = require('../models/Anorganik');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const BankSampah = require('../models/BankSampah');
-const {convertDateToDayMonthYear} = require('../services/convertDateToTanggal');
+const {convertDateToDayMonthYear} = require('../services/convertDatetoTanggal');
 
 const mongoose = require('mongoose');
 

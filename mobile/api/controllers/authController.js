@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const {convertDateToDayMonthYear} = require('../services/convertDateToTanggal');
+const {convertDateToDayMonthYear} = require('../services/convertDatetoTanggal');
 require('dotenv').config();
 
 exports.login = async (req, res) => {

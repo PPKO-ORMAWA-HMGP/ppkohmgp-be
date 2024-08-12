@@ -1,5 +1,5 @@
 const BankSampah = require('../models/BankSampah');
-const {convertDateToMonthYear} = require('../services/convertDateToTanggal');
+const {convertDateToMonthYear} = require('../services/convertDatetoTanggal');
 
 //untuk daftar nasabah
 // dah bener

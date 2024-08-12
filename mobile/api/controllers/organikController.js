@@ -3,7 +3,7 @@ const User = require("../models/User");
 const BankSampah = require("../models/BankSampah");
 const Notification = require("../models/Notification");
 const { uploadFile, generateLink } = require("../services/DriveAPI");
-const {convertDateToDayMonthYear} = require('../services/convertDateToTanggal');
+const {convertDateToDayMonthYear} = require('../services/convertDatetoTanggal');
 
 const mongoose = require("mongoose");
 require("dotenv").config();
@@ -45,7 +45,7 @@ exports.getLinkImage = async (req, res) => {
     const organik = await Organik.findById(req.params.id);
     if (!organik) return res.status(404).json({ message: "Organik not found" });
     const link = await generateLink(organik.image);
-    res.status(200).send(link);
+    res.status(200).json({link});
 }
 
 //dah bener
