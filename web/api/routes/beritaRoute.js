@@ -1,7 +1,7 @@
-const beritaController = require('../controllers/beritaController');
+const {getAllBerita} = require('../controllers/beritaController');
 const express = require('express');
 const router = express.Router();
 
-router.get('/', beritaController.getAllBerita);
+router.get('/', getAllBerita);
 
 module.exports = router;

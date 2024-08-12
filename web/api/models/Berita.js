@@ -11,7 +11,7 @@ const beritaSchema = new mongoose.Schema({
     },
     date : {
         type : Date,
-        default : Date.now,
+        default : Date.now() + 7 * 60 * 60 * 1000,
         required : true
     }
 })
