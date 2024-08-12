@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const {convertDatetoDayMonthYear} = require('../services/convertDatetoTanggal');
+const {convertDateToDayMonthYear} = require('../services/convertDateToTanggal');
 require('dotenv').config();
 
 exports.login = async (req, res) => {
@@ -27,7 +27,7 @@ exports.login = async (req, res) => {
                 issuer : process.env.TOKEN_ISSUER
             }
         );
-        const expiredDate = convertDatetoDayMonthYear(Date.now() + 175 * 60 * 60 * 1000);
+        const expiredDate = convertDateToDayMonthYear(Date.now() + 175 * 60 * 60 * 1000);
         res.status(200).json({ username : foundUser.username, fullname: foundUser.fullname, role: foundUser.role , token , expiredDate });
     }
     catch (error) {

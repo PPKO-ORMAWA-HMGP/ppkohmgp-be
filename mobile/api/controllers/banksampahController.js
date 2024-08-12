@@ -1,5 +1,5 @@
 const BankSampah = require('../models/BankSampah');
-const {convertDatetoMonthYear, convertDatetoDayMonthYear} = require('../services/convertDatetoTanggal');
+const {convertDateToMonthYear} = require('../services/convertDateToTanggal');
 
 //untuk daftar nasabah
 // dah bener
@@ -88,7 +88,7 @@ exports.getRecapbyDate = async (req, res) => {
             
             let totalmass = 0;
             banksampah.anorganik.forEach(anorganik => {
-                anorganik.tanggal = convertDatetoMonthYear(anorganik.date);
+                anorganik.tanggal = convertDateToMonthYear(anorganik.date);
                 anorganik.price = anorganik.price * anorganik.mass;
                 totalmass += anorganik.mass;
             });

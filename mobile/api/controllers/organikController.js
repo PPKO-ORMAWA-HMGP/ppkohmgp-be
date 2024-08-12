@@ -3,7 +3,7 @@ const User = require("../models/User");
 const BankSampah = require("../models/BankSampah");
 const Notification = require("../models/Notification");
 const { uploadFile, generateLink } = require("../services/DriveAPI");
-const {convertDatetoDayMonthYear} = require('../services/convertDatetoTanggal');
+const {convertDateToDayMonthYear} = require('../services/convertDateToTanggal');
 
 const mongoose = require("mongoose");
 require("dotenv").config();
@@ -18,7 +18,7 @@ exports.createOrganik = async (req, res) => {
     try {
         session = await mongoose.startSession();
         session.startTransaction();
-        const tanggal = convertDatetoDayMonthYear(Date.now() + 7 * 60 * 60 * 1000);
+        const tanggal = convertDateToDayMonthYear(Date.now() + 7 * 60 * 60 * 1000);
         const response = await uploadFile(tanggal, req.user.fullname, files[0]);
         const organik = new Organik({
             image : response.id,
@@ -123,7 +123,7 @@ exports.riwayatOrganik = async (req, res) => {
         organiks.forEach(organik => {
             organik.type = "Tambah Poin";
             organik.price = "+1 Poin";
-            organik.tanggal = convertDatetoDayMonthYear(organik.date);
+            organik.tanggal = convertDateToDayMonthYear(organik.date);
         });
         res.status(200).json(organiks);
     }

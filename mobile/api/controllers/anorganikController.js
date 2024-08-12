@@ -2,7 +2,7 @@ const Anorganik = require('../models/Anorganik');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
 const BankSampah = require('../models/BankSampah');
-const {convertDatetoDayMonthYear} = require('../services/convertDatetoTanggal');
+const {convertDateToDayMonthYear} = require('../services/convertDateToTanggal');
 
 const mongoose = require('mongoose');
 
@@ -79,7 +79,7 @@ exports.riwayatAnorganik = async (req, res) => {
         anorganiks.forEach(anorganik => {
             anorganik.type = "Tambah Saldo";
             anorganik.price = anorganik.price * anorganik.mass;
-            anorganik.tanggal = convertDatetoDayMonthYear(anorganik.date);
+            anorganik.tanggal = convertDateToDayMonthYear(anorganik.date);
         })
         res.status(200).json(anorganiks);
     }
