@@ -117,6 +117,7 @@ exports.getUser = async (req, res) => {
                     select : 'description price date mass'
                 })
                 .select('fullname username -_id');
+            if (user.anorganik.length === 0) return res.status(404).json({ message: "User not Anorganik" });
             user.anorganik.forEach(anorganik => {
                 anorganik.price = anorganik.price * anorganik.mass;
             })
@@ -149,7 +150,14 @@ exports.getUser = async (req, res) => {
                     select : 'kriteria',
                     match : { kriteria : 'Diterima' }
                 })
-            res.status(200).send(`${user.organik.length} kali`);
+                .select('fullname username -_id');
+            if (user.organik.length === 0) return res.status(404).json({ message: "User not Organik" });
+            const data = {
+                fullname: user.fullname,
+                username: user.username,
+                totalanorganik : `${user.organik.length} kali`
+            }
+            res.status(200).json(data);
         }
         catch (error) {
             res.status(500).json({ message: error.message });
