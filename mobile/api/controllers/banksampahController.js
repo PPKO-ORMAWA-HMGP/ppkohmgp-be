@@ -3,13 +3,16 @@ const {convertDatetoMonthYear, convertDatetoDayMonthYear} = require('../services
 
 //untuk daftar nasabah
 // dah bener
-exports.getAllUsers = async (req, res) => {
+exports.getDaftarNasabah = async (req, res) => {
+    let role = req.user.role;
+    if (role === 'Admin-Organik') role = 'Organik';
+    if (role === 'Admin-Anorganik') role = 'Anorganik';
     try {
         const banksampah = await BankSampah
             .findById(req.user.bankSampah)
             .populate({
                 path : 'users',
-                match : {$or:[{ role : 'Organik' } , {role : "Anorganik"}]},
+                match : { role : role},
                 select : 'username fullname'
             });
         if (!banksampah) return res.status(404).json({ message: "No users found" });
@@ -73,32 +76,45 @@ exports.getAllUsersAnorganik = async (req, res) => {
 //untuk nampilin data rekapan bulan ini
 // dah bener
 exports.getRecapbyDate = async (req, res) => {
-    try {
-        const { date } = req.body;
-        if (!date) return res.status(404).json({ message: "Please fill the field!" });
-        const banksampah = await BankSampah.findById(req.user.bankSampah)
-            .populate({
-                path : type,
+    const { date } = req.body;
+    if (!date) return res.status(404).json({ message: "Please fill the field!" });
+    if (req.user.role === 'Admin-Anorganik') {
+        try {
+            const banksampah = await BankSampah.findById(req.user.bankSampah)
+                .populate({
+                path : 'anorganik',
                 select : 'price type mass date'
             });
             
-        let totalmass = 0;
-        banksampah.anorganik.forEach(anorganik => {
-            anorganik.tanggal = convertDatetoMonthYear(anorganik.date);
-            anorganik.price = anorganik.price * anorganik.mass;
-            totalmass += anorganik.mass;
-        });
-        
-        const filteredAnorganik = banksampah.anorganik.filter(anorganik => anorganik.tanggal === date);
-        if (filteredAnorganik.length === 0) return res.status(404).json({ message: "No data found" });
-        const result = filteredAnorganik.map(item => ({
-            type: item.type,
-            mass: item.mass,
-            price: item.price
-        }));
-        res.status(200).json({result, totalmass});
+            let totalmass = 0;
+            banksampah.anorganik.forEach(anorganik => {
+                anorganik.tanggal = convertDatetoMonthYear(anorganik.date);
+                anorganik.price = anorganik.price * anorganik.mass;
+                totalmass += anorganik.mass;
+            });
+    
+            const filteredAnorganik = banksampah.anorganik.filter(anorganik => anorganik.tanggal === date);
+            if (filteredAnorganik.length === 0) return res.status(404).json({ message: "No data found" });
+            const result = filteredAnorganik.map(item => ({
+                type: item.type,
+                mass: item.mass,
+                price: item.price
+             }));
+            res.status(200).json({result, totalmass});
+        }
+        catch (error) {
+            res.status(500).json({ message: error.message });
+        }
     }
-    catch (error) {
-        res.status(500).json({ message: error.message });
+    else if (req.user.role === 'Admin-Organik') {
+        try {
+            res.status(200).json({ message: "Coming soon" });
+        }
+        catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    }
+    else {
+        res.status(403).json({ message: "Forbidden" });
     }
 }
