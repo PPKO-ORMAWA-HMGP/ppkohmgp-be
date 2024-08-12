@@ -1,5 +1,5 @@
 const BankSampah = require('../models/BankSampah');
-const {convertDatetoMonthYear} = require('../services/convertDatetoTanggal');
+const {convertDatetoMonthYear, convertDatetoDayMonthYear} = require('../services/convertDatetoTanggal');
 
 //untuk daftar nasabah
 // dah bener
@@ -26,29 +26,25 @@ exports.getAllUsersOrganik = async (req, res) => {
     try {   
         const banksampah = await BankSampah
             .findById(req.user.bankSampah)
-            .select('users organik -_id')
-            .populate({
-                path : 'users',
-                match : { role : 'Organik' },
-                select : 'fullname'})
             .populate({
                 path : 'organik',
-                select : 'kriteria tanggal -_id',
-                match : { kriteria : 'Menunggu' }
-            });
-        if (banksampah.length === 0) return res.status(404).json({ message: "No users found" });
-        // Add the date to the users
+                match : { kriteria : 'Menunggu' },
+                populate : {
+                    path : 'user',
+                    select : 'fullname -_id'
+                },
+                select : 'tanggal'
+            })
+            .select('organik -_id');
         let data = [];
-        console.log(banksampah);
-        banksampah.users.forEach((user,index) => {
-            const filteredbanksampah = new Object({
-                _id: user._id,
-                fullname: user.fullname,
-                tanggal : banksampah.organik[index].tanggal
+        banksampah.organik.forEach(organik => {
+            data.push({
+                _id : organik._id,
+                tanggal : organik.tanggal,
+                fullname : organik.user.fullname
             });
-            data.push(filteredbanksampah);
         });
-        res.status(200).json(data);
+        res.status(200).send(data);
     }
     catch (error) {
         res.status(500).json({ message: error.message });

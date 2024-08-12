@@ -42,27 +42,10 @@ exports.createOrganik = async (req, res) => {
 
 //dah bener
 exports.getLinkImage = async (req, res) => {
-    const user = await User.findById(req.params.id)
-        .select("role organik -_id")
-        .populate({
-            path : "organik",
-            select : "kriteria image date",
-            match : { kriteria : "Menunggu" },
-            options : { sort : { date : -1 }}
-        });
-    if (user.role !== "Organik") return res.status(400).json({ message: "User is not an Organik" });
-    if (user.organik.length === 0) return res.status(204).json({ message: "No Images Found" });
-    console.log(user.organik);
-    const data = [];
-    user.organik.forEach(organik => {
-        const link = generateLink(organik.image);
-        data.push({
-            link,
-            _id: organik._id,
-        });
-    });
-    console.log(data)
-    res.status(200).send(data);
+    const organik = await Organik.findById(req.params.id);
+    if (!organik) return res.status(404).json({ message: "Organik not found" });
+    const link = await generateLink(organik.image);
+    res.status(200).send(link);
 }
 
 //dah bener
