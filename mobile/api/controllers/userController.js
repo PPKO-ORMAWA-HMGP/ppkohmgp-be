@@ -35,7 +35,7 @@ exports.registerUser = async (req, res) => {
         const newUser = new User({ 
             username, fullname, phoneNumber, password: hashedPassword, role , bankSampah: banksampah._id
         });
-        await newUser.save(session);
+        await newUser.save({session});
         await BankSampah.findByIdAndUpdate(banksampah._id, { $push: { users: newUser._id } });
         await session.commitTransaction();
         res.status(201).json({ message: "User registered successfully" });
@@ -91,7 +91,7 @@ exports.updateUser = async (req,res) => {
                 type : "profile",
                 user: new mongoose.Types.ObjectId(req.user.id)
             });
-            await notification.save(session);
+            await notification.save({session});
             await session.commitTransaction();
             return res.status(200).json({ message: "User updated successfully" });
         }

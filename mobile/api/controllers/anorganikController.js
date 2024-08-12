@@ -51,7 +51,7 @@ exports.createAnorganik = async (req, res) => {
                 type : "add",
                 user: new mongoose.Types.ObjectId(req.params.id)
             });
-            await notification.save(session);
+            await notification.save({session});
             await BankSampah.findByIdAndUpdate(bankSampah._id, { $push: { anorganik: newAnorganik[i]._id } });
             user.anorganik.push(newAnorganik[i]._id);
             user.notification.push(notification._id);

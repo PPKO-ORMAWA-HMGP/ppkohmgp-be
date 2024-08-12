@@ -26,7 +26,7 @@ exports.createOrganik = async (req, res) => {
             tanggal,
             user: new mongoose.Types.ObjectId(req.user.id)
         });
-        await organik.save(session);
+        await organik.save({session});
         await User.findByIdAndUpdate(req.user.id, { $push: { organik: organik._id } });
         await BankSampah.findByIdAndUpdate(banksampah._id, { $push: { organik: organik._id } });
         await session.commitTransaction();
