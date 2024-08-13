@@ -41,6 +41,7 @@ exports.registerUser = async (req, res) => {
         res.status(201).json({ message: "User registered successfully" });
     }
     catch (error) {
+        await session.abortTransaction();
         res.status(500).json({ message: error.message });
     }
     finally {
@@ -98,6 +99,7 @@ exports.updateUser = async (req,res) => {
         else return res.status(404).json({ message: "User not found" });
     }
     catch (error) {
+        await session.abortTransaction();
         res.status(500).json({ message: error.message });
     }
     finally {

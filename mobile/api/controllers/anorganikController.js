@@ -62,6 +62,7 @@ exports.createAnorganik = async (req, res) => {
         res.status(201).json({ message: "Anorganik created successfully" });
     }
     catch (error) {
+        await session.abortTransaction();
         res.status(500).json({ message: error.message });
     }
     finally {

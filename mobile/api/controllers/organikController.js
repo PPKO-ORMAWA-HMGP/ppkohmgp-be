@@ -33,6 +33,7 @@ exports.createOrganik = async (req, res) => {
         res.status(201).json({ message: "Organik created successfully" });
     }
     catch (error) {
+        await session.abortTransaction();
         res.status(500).json({ message: error.message });
     }
     finally {
@@ -79,6 +80,7 @@ exports.verifyOrganik = async (req, res) => {
             res.status(200).json({ message: "Organik verified successfully" });
         }
         catch (error) {
+            await session.abortTransaction();
             res.status(500).json({ message: error.message });
         }
         finally {
@@ -104,6 +106,7 @@ exports.verifyOrganik = async (req, res) => {
             res.status(200).json({ message: "Organik verified successfully" });
         }
         catch (error) {
+            await session.abortTransaction();
             res.status(500).json({ message: error.message });
         }
         finally {

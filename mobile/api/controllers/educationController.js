@@ -9,11 +9,12 @@ exports.createEducation = async (req, res) => {
     try {
         session = await mongoose.startSession();
         session.startTransaction();
-        await newEducation.save();
+        await newEducation.save({session});
         await session.commitTransaction();
         res.status(201).json({ message: "Education created successfully" });
     }
     catch (error) {
+        await session.abortTransaction();
         res.status(500).json({ message: error.message });
     }
     finally {
@@ -55,6 +56,7 @@ exports.updateEducation = async (req, res) => {
         res.status(200).json({ message: "Education updated successfully" });
     }
     catch (error) {
+        await session.abortTransaction();
         res.status(500).json({ message: error.message });
     }
     finally {
@@ -73,6 +75,7 @@ exports.deleteEducation = async (req, res) => {
         res.status(204).json({ message: "Education deleted successfully" });
     }
     catch (error) {
+        await session.abortTransaction();
         res.status(500).json({ message: error.message });
     }
     finally {
