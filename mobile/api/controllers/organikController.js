@@ -76,7 +76,7 @@ exports.verifyOrganik = async (req, res) => {
                 user: new mongoose.Types.ObjectId(organik.user)
             });
             await User.findByIdAndUpdate(organik.user, { $inc: { point: 1 }, $push: { notification: notification._id } });
-            session.commitTransaction();
+            await session.commitTransaction();
             res.status(200).json({ message: "Organik verified successfully" });
         }
         catch (error) {
@@ -102,7 +102,7 @@ exports.verifyOrganik = async (req, res) => {
                 user: new mongoose.Types.ObjectId(organik.user)
             });
             await User.findByIdAndUpdate(organik.user, { $push: { notification: notification._id } });
-            session.commitTransaction();
+            await session.commitTransaction();
             res.status(200).json({ message: "Organik verified successfully" });
         }
         catch (error) {

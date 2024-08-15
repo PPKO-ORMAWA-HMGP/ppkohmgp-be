@@ -1,5 +1,27 @@
 const Education = require("../models/Education");
 const mongoose = require("mongoose");
+const {generateLink, uploadFileEducation} = require('../services/DriveAPI');
+
+exports.uploadEducationImage = async (req, res) => {
+    let session;
+    try {
+        session = await mongoose.startSession();
+        session.startTransaction();
+        const education = await Education.findById(req.params.id);
+        if (!education) return res.status(404).json({ message: "Education not found" });
+        education.image = req.file.buffer;
+        await education.save({ session });
+        await session.commitTransaction();
+        res.status(200).json({ message: "Image uploaded successfully" });
+    }
+    catch (err) {
+        await session.abortTransaction();
+        res.status(500).json( err.message );
+    }
+    finally {
+        if (session) session.endSession();
+    }
+}
 
 exports.createEducation = async (req, res) => {
     let session;
