@@ -26,7 +26,7 @@ const OrganikSchema = new mongoose.Schema({
         enum : ['Tambah Poin', 'Tukar Poin']
     },
     price : {
-        type : String
+        type : Number
     },
     feedback : {
         type : String

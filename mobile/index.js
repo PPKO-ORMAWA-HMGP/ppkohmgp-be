@@ -25,6 +25,7 @@ app.use("/organik", require("./api/routes/organikRoute"));
 app.use("/notification", require("./api/routes/notificationRoute"));
 app.use("/banksampah", require("./api/routes/banksampahRoute"));
 app.use("/education", require("./api/routes/educationRoute"));
+app.use("/recap", require("./api/routes/recapRoute"));
 
 //Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI,

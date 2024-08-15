@@ -21,6 +21,10 @@ const BankSampahSchema = new mongoose.Schema({
         type : mongoose.Schema.Types.ObjectId,
         ref : "Anorganik"
     }],
+    recap : [{
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "Recap"
+    }]
 });
 
 module.exports = mongoose.model("BankSampah", BankSampahSchema);
