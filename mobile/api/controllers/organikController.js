@@ -27,8 +27,8 @@ exports.createOrganik = async (req, res) => {
             user: new mongoose.Types.ObjectId(req.user.id)
         });
         await organik.save({session});
-        await User.findByIdAndUpdate(req.user.id, { $push: { organik: organik._id } });
-        await BankSampah.findByIdAndUpdate(banksampah._id, { $push: { organik: organik._id } });
+        await User.findByIdAndUpdate(req.user.id, { $push: { organik: organik._id } }, { session });
+        await BankSampah.findByIdAndUpdate(banksampah._id, { $push: { organik: organik._id } }, { session });
         await session.commitTransaction();
         res.status(201).json({ message: "Organik created successfully" });
     }
@@ -66,8 +66,8 @@ exports.verifyOrganik = async (req, res) => {
             session = await mongoose.startSession();
             session.startTransaction();
             organik.kriteria = "Diterima";
-            organik.price = "+1 Poin";
-            await Organik.findByIdAndUpdate(req.params.id, { kriteria: "Diterima", price: "+1 Poin" });
+            organik.price = 1;
+            await Organik.findByIdAndUpdate(req.params.id, { kriteria: "Diterima", price: "+1 Poin" }, { session });
             const notification = await Notification.create({
                 title: "Sampah organik terkumpul",
                 message: "Poin organik berhasil didapatkan",
@@ -75,7 +75,7 @@ exports.verifyOrganik = async (req, res) => {
                 type: "add",
                 user: new mongoose.Types.ObjectId(organik.user)
             });
-            await User.findByIdAndUpdate(organik.user, { $inc: { point: 1 }, $push: { notification: notification._id } });
+            await User.findByIdAndUpdate(organik.user, { $inc: { point: 1 }, $push: { notification: notification._id } }, { session});
             await session.commitTransaction();
             res.status(200).json({ message: "Organik verified successfully" });
         }
@@ -93,7 +93,7 @@ exports.verifyOrganik = async (req, res) => {
             session.startTransaction();
             organik.kriteria = "Ditolak";
             organik.feedback = feedback;
-            await Organik.findByIdAndUpdate(req.params.id, { kriteria: "Ditolak", feedback });
+            await Organik.findByIdAndUpdate(req.params.id, { kriteria: "Ditolak", feedback }, { session });
             const notification = await Notification.create({
                 title: "Sampah organik gagal terkumpul",
                 message: "Sampah tidak memenuhi kriteria organik",
@@ -101,7 +101,7 @@ exports.verifyOrganik = async (req, res) => {
                 type: "add",
                 user: new mongoose.Types.ObjectId(organik.user)
             });
-            await User.findByIdAndUpdate(organik.user, { $push: { notification: notification._id } });
+            await User.findByIdAndUpdate(organik.user, { $push: { notification: notification._id } }, { session });
             await session.commitTransaction();
             res.status(200).json({ message: "Organik verified successfully" });
         }
@@ -125,7 +125,7 @@ exports.riwayatOrganik = async (req, res) => {
         if (organiks.length === 0) return res.status(204).json({ message: "No organik found" });
         organiks.forEach(organik => {
             organik.type = "Tambah Poin";
-            organik.price = "+1 Poin";
+            organik.price = 1;
             organik.tanggal = convertDateToDayMonthYear(organik.date);
         });
         res.status(200).json(organiks);

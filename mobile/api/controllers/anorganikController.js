@@ -52,11 +52,11 @@ exports.createAnorganik = async (req, res) => {
                 user: new mongoose.Types.ObjectId(req.params.id)
             });
             await notification.save({session});
-            await BankSampah.findByIdAndUpdate(bankSampah._id, { $push: { anorganik: newAnorganik[i]._id } });
+            await BankSampah.findByIdAndUpdate(bankSampah._id, { $push: { anorganik: newAnorganik[i]._id } }, { session });
             user.anorganik.push(newAnorganik[i]._id);
             user.notification.push(notification._id);
             user.balance += newAnorganik[i].price * newAnorganik[i].mass;
-            await user.save(session);
+            await user.save({session});
         };
         await session.commitTransaction();
         res.status(201).json({ message: "Anorganik created successfully" });
