@@ -1,4 +1,4 @@
-const { getRecap, sendRecap, updateRecap, getNasabah } = require('../controllers/recapController');
+const { getRecap, sendRecap, updateRecap, countNasabah } = require('../controllers/recapController');
 const { protectAdmin } = require('../middleware/checkRole');
 const express = require('express');
 const router = express.Router();
@@ -8,6 +8,6 @@ router.route('/')
     .get(protectAdmin, getRecap)
     .patch(protectAdmin, updateRecap);
 router.route('/nasabah')
-    .get(protectAdmin, getNasabah);
+    .get(protectAdmin, countNasabah);
 
 module.exports = router;
