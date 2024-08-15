@@ -1,9 +1,9 @@
 const { google } = require("googleapis");
-const auth = require("./OAuth2");
+const { driveauth } = require("./OAuth2");
 
 const drive = google.drive({
     version: "v3",
-    auth
+    auth : driveauth
 });
 
 module.exports = drive;

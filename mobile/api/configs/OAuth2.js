@@ -1,12 +1,19 @@
 const { google } = require('googleapis');
 const path = require('path');
 
-const KEYFILEPATH = path.join(__dirname, "credentials.json");
-const SCOPES = ["https://www.googleapis.com/auth/drive"];
+const DRIVEKEYFILEPATH = path.join(__dirname, "credentials_drive.json");
+const SHEETKEYFILEPATH = path.join(__dirname, "credentials_spreadsheet.json");
+const DRIVE_SCOPES = ["https://www.googleapis.com/auth/drive"];
+const SHEET_SCOPES = ["https://www.googleapis.com/auth/spreadsheets"];
 
-const auth = new google.auth.GoogleAuth({
-    keyFile: KEYFILEPATH,
-    scopes: SCOPES,
+const driveauth = new google.auth.GoogleAuth({
+    keyFile: DRIVEKEYFILEPATH,
+    scopes: DRIVE_SCOPES,
 });
 
-module.exports = auth;
+const sheetauth = new google.auth.GoogleAuth({
+    keyFile: SHEETKEYFILEPATH,
+    scopes: SHEET_SCOPES,
+});
+
+module.exports = {driveauth, sheetauth};
