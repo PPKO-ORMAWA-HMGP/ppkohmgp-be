@@ -134,3 +134,12 @@ exports.riwayatOrganik = async (req, res) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+// exports.tukarOrganik = async (req, res) => {
+//     let session;
+//     const {id} = req.params;
+//     const {}
+//     try {
+
+//     }
+// }

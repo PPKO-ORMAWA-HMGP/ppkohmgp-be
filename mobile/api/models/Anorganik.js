@@ -11,11 +11,11 @@ const AnorganikSchema = new mongoose.Schema({
         required : true
     },
     mass : {
-        type : mongoose.Decimal128,
+        type : Number,
         required : true
     },
     price : {
-        type : mongoose.Decimal128,
+        type : Number,
         required : true
     },
     date : {
