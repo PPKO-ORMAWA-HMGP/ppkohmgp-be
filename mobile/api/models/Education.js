@@ -20,6 +20,9 @@ const EducationSchema = new mongoose.Schema(
         },
         image : {
             type: String
+        },
+        link : {
+            type : String
         }
     },
     {_id : false}

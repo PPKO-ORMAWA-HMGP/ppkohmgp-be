@@ -25,9 +25,9 @@ exports.uploadEducationImage = async (req, res) => {
 
 exports.createEducation = async (req, res) => {
     let session;
-    const { title, content, synopsis } = req.body;
-    if (!title || !content || !synopsis) return res.status(400).json({ message: "Please fill all fields" });
-    const newEducation = new Education({ title, content, synopsis });
+    const { title, content, synopsis, link } = req.body;
+    if (!title || !content || !synopsis || !link) return res.status(400).json({ message: "Please fill all fields" });
+    const newEducation = new Education({ title, content, synopsis, link });
     try {
         session = await mongoose.startSession();
         session.startTransaction();
