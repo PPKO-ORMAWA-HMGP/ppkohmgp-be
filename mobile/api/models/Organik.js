@@ -1,12 +1,7 @@
 const mongoose = require ("mongoose");
+var Int32 = require('mongoose-int32');
 
 const OrganikSchema = new mongoose.Schema({
-    name : {
-        type : String
-    },
-    mass : {
-        type : Number
-    },
     date : {
         type : Date
     },
@@ -16,17 +11,17 @@ const OrganikSchema = new mongoose.Schema({
     image : {
         type : String
     },
-    kriteria : {
-        type : String,
-        enum : ['Diterima', 'Ditolak', 'Menunggu'],
-        default : 'Menunggu'
+    price : {
+        type : Int32
     },
     type : {
         type : String,
         enum : ['Tambah Poin', 'Tukar Poin']
     },
-    price : {
-        type : Number
+    kriteria : {
+        type : String,
+        enum : ['Diterima', 'Ditolak', 'Menunggu'],
+        default : 'Menunggu'
     },
     feedback : {
         type : String

@@ -4,18 +4,18 @@ const AnorganikSchema = new mongoose.Schema({
     type: {
         type: String,
         required: true,
-        enum: ['Plastik', 'Kertas', 'Logam', 'Kaca', 'Jelantah','Lain-lain']
+        enum: ['Plastik', 'Kertas', 'Logam', 'Kaca', 'Jelantah', 'Lain-lain']
     },
     description : {
         type : String,
         required : true
     },
     mass : {
-        type : Number,
+        type : mongoose.Decimal128,
         required : true
     },
     price : {
-        type : Number,
+        type : mongoose.Decimal128,
         required : true
     },
     date : {
