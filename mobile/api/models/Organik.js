@@ -1,5 +1,4 @@
 const mongoose = require ("mongoose");
-var Int32 = require('mongoose-int32');
 
 const OrganikSchema = new mongoose.Schema({
     date : {
@@ -11,8 +10,8 @@ const OrganikSchema = new mongoose.Schema({
     image : {
         type : String
     },
-    price : {
-        type : Int32
+    poin : {
+        type : Number
     },
     type : {
         type : String,

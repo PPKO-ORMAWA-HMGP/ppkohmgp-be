@@ -66,8 +66,8 @@ exports.verifyOrganik = async (req, res) => {
             session = await mongoose.startSession();
             session.startTransaction();
             organik.kriteria = "Diterima";
-            organik.price = 1;
-            await Organik.findByIdAndUpdate(req.params.id, { kriteria: "Diterima", price : 1 }, { session });
+            organik.poin = 1;
+            await Organik.findByIdAndUpdate(req.params.id, { kriteria: "Diterima", poin : 1 }, { session });
             const notification = await Notification.create({
                 title: "Sampah organik terkumpul",
                 message: "Poin organik berhasil didapatkan",
@@ -120,12 +120,12 @@ exports.verifyOrganik = async (req, res) => {
 exports.riwayatOrganik = async (req, res) => {
     try {
         const organiks = await Organik.find({user: req.user._id, kriteria: "Diterima"})
-            .select('date tanggal kriteria type price')
+            .select('date tanggal kriteria type poin')
             .sort({date: -1});
         if (organiks.length === 0) return res.status(204).json({ message: "User ini belum mengumpulkan organik" });
         organiks.forEach(organik => {
             organik.type = "Tambah Poin";
-            organik.price = 1;
+            organik.poin = 1;
             organik.tanggal = convertDateToDayMonthYear(organik.date);
         });
         res.status(200).json(organiks);
