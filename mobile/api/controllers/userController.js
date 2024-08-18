@@ -36,7 +36,7 @@ exports.registerUser = async (req, res) => {
             username, fullname, phoneNumber, password: hashedPassword, role , bankSampah: banksampah._id
         });
         await newUser.save({session});
-        await BankSampah.findByIdAndUpdate(banksampah._id, { $push: { users: newUser._id } });
+        await BankSampah.findByIdAndUpdate(banksampah._id, { $push: { users: newUser._id } }, { session });
         await session.commitTransaction();
         res.status(201).json({ message: "User registered successfully" });
     }
@@ -83,7 +83,7 @@ exports.updateUser = async (req,res) => {
     try {
         session = await mongoose.startSession();
         session.startTransaction();
-        const updatedUser = await User.findByIdAndUpdate(req.user._id, { username, fullname, phoneNumber}, { new: true });
+        const updatedUser = await User.findByIdAndUpdate(req.user._id, { username, fullname, phoneNumber}, { new: true }, {session});
         if (updatedUser) {
             const notification = new Notification({
                 title: "Pengaturan Profil Berhasil",

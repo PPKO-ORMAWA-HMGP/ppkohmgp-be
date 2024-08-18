@@ -72,7 +72,7 @@ exports.updateEducation = async (req, res) => {
     try {
         session = await mongoose.startSession();
         session.startTransaction();
-        const result = await Education.findByIdAndUpdate(req.params.id, { title, content, synopsis });
+        const result = await Education.findByIdAndUpdate(req.params.id, { title, content, synopsis }, {session});
         if (!result) return res.status(404).json({ message: "Education not found" });
         await session.commitTransaction();
         res.status(200).json({ message: "Education updated successfully" });
@@ -91,7 +91,7 @@ exports.deleteEducation = async (req, res) => {
     try {
         session = await mongoose.startSession();
         session.startTransaction();
-        const result = await Education.findByIdAndDelete(req.params.id);
+        const result = await Education.findByIdAndDelete(req.params.id, {session});
         if (!result) return res.status(400).json({ message: "Already deleted" });
         await session.commitTransaction();
         res.status(204).json({ message: "Education deleted successfully" });

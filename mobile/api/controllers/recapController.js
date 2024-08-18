@@ -134,7 +134,7 @@ exports.updateRecap = async (req, res) => {
             iosida,
             tanggal,
             banksampah
-        });
+        }, {session});
         if (!recap) return res.status(404).json({message : "Recap not found"});
         await session.commitTransaction();
         res.status(200).json({message : `Berhasil mengupdate data recap pada ${banksampah.name} untuk ${tanggal}`});
