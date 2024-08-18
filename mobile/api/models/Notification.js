@@ -19,7 +19,7 @@ const NotificationSchema = new mongoose.Schema({
     type : {
         type : String,
         required : true,
-        enum : ['add', 'penukaran', 'penarikan', 'profile', 'privacy']
+        enum : ['add', 'gagal', 'penukaran', 'penarikan', 'profile', 'privacy']
     },
     user: {
         type: mongoose.Schema.Types.ObjectId,

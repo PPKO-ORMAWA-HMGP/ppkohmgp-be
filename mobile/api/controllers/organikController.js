@@ -52,29 +52,27 @@ exports.getLinkImage = async (req, res) => {
 //dah bener
 exports.verifyOrganik = async (req, res) => {
     let session;
-    const {id} = req.params;
+    const { id } = req.params;
     const { feedback } = req.body;
     const organik = await Organik.findById(id);
     if (!organik) return res.status(404).json({ message: "Organik not found" });
     const banksampah = await BankSampah.findById(req.user.bankSampah);
     if (!banksampah) return res.status(404).json({ message: "Bank Sampah not found" });
-    if (organik.kriteria === "Diterima") return res.status(400).json({ message: "Organik already verified" });
-    if (organik.kriteria === "Ditolak") return res.status(400).json({ message: "Organik already rejected" });
+    if (organik.kriteria !== "Menunggu") return res.status(400).json({ message: "Organik has been verified" });
 
     if (!feedback) {
         try {
             session = await mongoose.startSession();
             session.startTransaction();
-            organik.kriteria = "Diterima";
-            organik.poin = 1;
             await Organik.findByIdAndUpdate(req.params.id, { kriteria: "Diterima", poin : 1 }, { session });
-            const notification = await Notification.create({
+            const notification = new Notification ({
                 title: "Sampah organik terkumpul",
                 message: "Poin organik berhasil didapatkan",
                 date: Date.now() + 7 * 60 * 60 * 1000,
                 type: "add",
                 user: new mongoose.Types.ObjectId(organik.user)
             });
+            await notification.save({session});
             await User.findByIdAndUpdate(organik.user, { $inc: { point: 1 }, $push: { notification: notification._id } }, { session });
             await session.commitTransaction();
             res.status(200).json({ message: "Organik verified successfully" });
@@ -91,23 +89,22 @@ exports.verifyOrganik = async (req, res) => {
         try {
             session = await mongoose.startSession();
             session.startTransaction();
-            organik.kriteria = "Ditolak";
-            organik.feedback = feedback;
             await Organik.findByIdAndUpdate(req.params.id, { kriteria: "Ditolak", feedback }, { session });
-            const notification = await Notification.create({
+            const notification = new Notification({
                 title: "Sampah organik gagal terkumpul",
                 message: "Sampah tidak memenuhi kriteria organik",
                 date: Date.now() + 7 * 60 * 60 * 1000,
-                type: "add",
+                type: "gagal",
                 user: new mongoose.Types.ObjectId(organik.user)
             });
+            await notification.save({session});
             await User.findByIdAndUpdate(organik.user, { $push: { notification: notification._id } }, { session });
             await session.commitTransaction();
             res.status(200).json({ message: "Organik verified successfully" });
         }
         catch (error) {
             await session.abortTransaction();
-            res.status(500).json({ message: error.message });
+            res.status(500).json(error.message);
         }
         finally {
             if (session) session.endSession();
@@ -119,14 +116,16 @@ exports.verifyOrganik = async (req, res) => {
 //dah bener
 exports.riwayatOrganik = async (req, res) => {
     try {
-        const organiks = await Organik.find({user: req.user._id, kriteria: "Diterima"})
-            .select('date tanggal kriteria type poin')
-            .sort({date: -1});
+        const organiks = await Organik.find({
+            user: req.user._id,
+            $or : [{kriteria : "Diterima"}, {kriteria : "Ditukar"}]
+            })
+            .select('poin date tanggal kriteria type')
+            .sort({date: -1})
         if (organiks.length === 0) return res.status(204).json({ message: "User ini belum mengumpulkan organik" });
         organiks.forEach(organik => {
-            organik.type = "Tambah Poin";
-            organik.poin = 1;
-            organik.tanggal = convertDateToDayMonthYear(organik.date);
+            if (organik.kriteria === "Diterima") organik.type = "Tambah Poin";
+            else organik.type = "Tukar Poin";
         });
         res.status(200).json(organiks);
     }
@@ -135,11 +134,45 @@ exports.riwayatOrganik = async (req, res) => {
     }
 }
 
-// exports.tukarOrganik = async (req, res) => {
-//     let session;
-//     const {id} = req.params;
-//     const {}
-//     try {
-
-//     }
-// }
+exports.tukarPoin = async (req, res) => {
+    let session;
+    const {id} = req.query;
+    const {poin} = req.body;
+    //check user
+    const user = await User.findById(id).select('-password -__v -notification -phoneNumber');
+    if (!user || user.role !== "Organik" || user.bankSampah.toString() !== req.user.bankSampah.toString()) 
+        return res.status(404).json({ message: "User not found" });
+    if (user.point < poin) return res.status(400).json({ message: "Insufficient point" });
+    if (poin < 1) return res.status(400).json({ message: "Minimum point is 1" });
+    try {
+        session = await mongoose.startSession();
+        session.startTransaction();
+        user.point -= poin;
+        const notification = await Notification.create({
+            title: "Penukaran poin organik",
+            message: "Poin organik berhasil ditukarkan dengan barang",
+            date: Date.now() + 7 * 60 * 60 * 1000,
+            type: "penukaran",
+            user: new mongoose.Types.ObjectId(id)
+        });
+        await notification.save({session});
+        const organik = new Organik({
+            date: Date.now() + 7 * 60 * 60 * 1000,
+            tanggal: convertDateToDayMonthYear(Date.now() + 7 * 60 * 60 * 1000),
+            poin : -poin,
+            kriteria: "Ditukar",
+            user: user._id
+        });
+        await organik.save({session});
+        await User.findByIdAndUpdate(id, { point: user.point, $push: {notification : notification._id}}, { session });
+        await session.commitTransaction();
+        res.status(200).json({ message: "Point exchanged successfully" });
+    }
+    catch (err) {
+        await session.abortTransaction();
+        res.status(500).json(err.message);
+    }
+    finally {
+        if (session) session.endSession();
+    }
+}

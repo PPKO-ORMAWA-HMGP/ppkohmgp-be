@@ -85,6 +85,39 @@ exports.riwayatAnorganik = async (req, res) => {
         res.status(200).json(anorganiks);
     }
     catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json(error.message);
+    }
+}
+
+exports.tarikSaldo = async (req, res) => {
+    let session;
+    const { id } = req.query;
+    const { saldo } = req.body;
+    const user = await User.findById(id).select('username fullname balance role bankSampah');
+    if (!user || user.role !== 'Anorganik' || user.bankSampah.toString() !== req.user.bankSampah.toString()) 
+        return res.status(404).json({ message: "User not found" });
+    try {
+        session = await mongoose.startSession();
+        session.startTransaction();
+        if (user.balance < saldo) return res.status(400).json({ message: "Insufficient balance" });
+        user.balance -= saldo;
+        const notification = new Notification({
+            title: "Penarikan saldo anorganik",
+            message: `Saldo anorganik berhasil ditarik`,
+            date: Date.now() + 7 * 60 * 60 * 1000,
+            type: "penarikan",
+            user: new mongoose.Types.ObjectId(id)
+        });
+        await notification.save({ session });
+        await User.findByIdAndUpdate(id, { balance : user.balance , $push: { notification: notification._id } }, { session });
+        await session.commitTransaction();
+        res.status(200).json({ message: "Saldo anorganik berhasil ditarik" });
+    }
+    catch (error) {
+        await session.abortTransaction();
+        res.status(500).json(error.message);
+    }
+    finally {
+        if (session) session.endSession();
     }
 }
