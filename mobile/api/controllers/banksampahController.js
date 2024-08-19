@@ -1,5 +1,4 @@
 const BankSampah = require('../models/BankSampah');
-const {convertDateToMonthYear} = require('../services/convertDatetoTanggal');
 
 //untuk daftar nasabah
 // dah bener
@@ -79,7 +78,8 @@ exports.getAllUsersOrganik = async (req, res) => {
                 $project : {
                     _id : '$organik._id',
                     fullname : '$organik.user.fullname',
-                    tanggal : '$organik.tanggal'
+                    tanggal : '$organik.tanggal',
+                    poin : '$organik.user.point'
                 }
             }
         ]);
@@ -116,6 +116,7 @@ exports.getAllUsersAnorganik = async (req, res) => {
             {
                 $project : {
                     fullname : '$users.fullname',
+                    balance : '$users.balance'
                 }
             }
         ]);
