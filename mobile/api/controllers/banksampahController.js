@@ -30,10 +30,12 @@ exports.getDaftarNasabah = async (req, res) => {
                     _id : '$users._id',
                     fullname : '$users.fullname',
                     username : '$users.username',
+                    balance : '$users.balance',
+                    poin : '$users.point'
                 }
             }
         ]);
-        if (!banksampah) return res.status(204)
+        if (banksampah.length === 0) return res.sendStatus(204)
         res.status(200).json(banksampah);
     }
     catch (error) {
@@ -78,12 +80,11 @@ exports.getAllUsersOrganik = async (req, res) => {
                 $project : {
                     _id : '$organik._id',
                     fullname : '$organik.user.fullname',
-                    tanggal : '$organik.tanggal',
-                    poin : '$organik.user.point'
+                    tanggal : '$organik.tanggal'
                 }
             }
         ]);
-        if (!banksampah) return res.status(204);
+        if (banksampah.length === 0) return res.sendStatus(204);
         res.status(200).send(banksampah);
     }
     catch (error) {
@@ -115,12 +116,11 @@ exports.getAllUsersAnorganik = async (req, res) => {
             },
             {
                 $project : {
-                    fullname : '$users.fullname',
-                    balance : '$users.balance'
+                    fullname : '$users.fullname'
                 }
             }
         ]);
-        if (!banksampah) return res.status(204);
+        if (banksampah.length === 0) return res.sendStatus(204);
         res.status(200).json(banksampah);
     }
     catch (error) {

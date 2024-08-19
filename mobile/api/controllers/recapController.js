@@ -3,53 +3,109 @@ const {convertDateToMonthYear} = require("../services/convertDatetoTanggal")
 const BankSampah = require("../models/BankSampah");
 const mongoose = require("mongoose");
 
+
+//modular function for countNasabah
+const filterData = (data, month, year) => {
+    const filterOrganikbyMonthYear = data.filter(data => convertDateToMonthYear(data.date) === `${month} ${year}`)
+    const filterOrganikbyUser = filterOrganikbyMonthYear.map(organik => organik.user.toString());
+    const uniqueOrganikUser = filterOrganikbyUser.filter((item, index) => filterOrganikbyUser.indexOf(item) === index);
+    return uniqueOrganikUser;
+}
+//modular function for countNasabah
+const dataAggregatePipeline = (req, sampah, sampahLower) => {
+    return [
+        {
+            $match : { _id : req.user.bankSampah }
+        },
+        {
+            $lookup : {
+                from : 'users',
+                localField : 'users',
+                foreignField : '_id',
+                as : 'users'
+            }
+        },
+        {
+            $unwind : '$users'
+        },
+        {
+            $match : { 'users.role' : sampah }
+        },
+        {
+            $lookup : {
+                from : `${sampahLower}s`,
+                localField : `${sampahLower}`,
+                foreignField : '_id',
+                as : `${sampahLower}`
+            }
+        },
+        {
+            $unwind : `$${sampahLower}`
+        },
+        {
+            $match : { 'organik.kriteria' : 'Diterima' }
+        },
+        {
+            $project : {
+                date : `$${sampahLower}.date`,
+                user : `$${sampahLower}.user`
+            }
+        }
+    ]
+}
+//modular function for countNasabah
+const roleAggregatePipeline = (req, sampah) => {
+    return [
+        {
+            $match : { _id : req.user.bankSampah }
+        },
+        {
+            $lookup : {
+                from : 'users',
+                localField : 'users',
+                foreignField : '_id',
+                as : 'users'
+            }
+        },
+        {
+            $unwind : '$users'
+        },
+        {
+            $match : { 'users.role' : sampah }
+        },
+        {
+            $project : {
+                user : '$users._id',
+                _id : 0
+            }
+        }
+    ]
+}   
+
 exports.countNasabah = async (req, res) => {
     const { month, year } = req.query;
     let { sampah } = req.query;
     if (sampah !== 'organik' && sampah !== 'anorganik') return res.status(404).json({ message: "Please enter a valid type!" });
     sampah === 'organik' ? sampah = 'Organik' : sampah = 'Anorganik';
     try {
-        if (sampah === 'Organik') {
-            const { users , organik } = await BankSampah.findById(req.user.bankSampah)
-            .populate({
-                    path : 'users',
-                    select : '_id',
-                    match : {role : sampah}
-                })
-            .populate({
-                path : 'organik',
-                select : 'date kriteria user -_id',
-                match : {kriteria : "Diterima"}
-            })
-            .select('name users organik -_id');
-            const filterOrganikbyMonthYear = organik.filter(organik => convertDateToMonthYear(organik.date) === `${month} ${year}`)
-            const filterOrganikbyUser = filterOrganikbyMonthYear.map(organik => organik.user.toString());
-            const uniqueOrganikUser = filterOrganikbyUser.filter((item, index) => filterOrganikbyUser.indexOf(item) === index);
+        if (sampah === 'Organik' && req.user.role === 'Admin-Organik') {
+            const sampahtoLower = sampah.toLowerCase();
+            const data = await BankSampah.aggregate(dataAggregatePipeline(req, sampah, sampahtoLower));
+            const allUserOrganik = await BankSampah.aggregate(roleAggregatePipeline(req, sampah));
             res.status(200).json({
-                "Jumlah warga yang sudah memilah sampah" : uniqueOrganikUser.length,
-                "Jumlah warga yang sudah menjadi nasabah" : users.length
+                "Jumlah warga yang sudah memilah sampah" : filterData(data, month, year).length,
+                "Jumlah warga yang sudah menjadi nasabah" : allUserOrganik.length
             });
         }
-        else {
-            const { users , anorganik } = await BankSampah.findById(req.user.bankSampah)
-            .populate({
-                    path : 'users',
-                    select : '_id',
-                    match : {role : sampah}
-                })
-            .populate({
-                path : 'anorganik',
-                select : 'user date -_id',
-            })
-            .select('name users anorganik -_id');
-            const filterAnorganikbyMonthYear = anorganik.filter(anorganik => convertDateToMonthYear(anorganik.date) === `${month} ${year}`)
-            const filterAnorganikbyUser = filterAnorganikbyMonthYear.map(anorganik => anorganik.user.toString());
-            const uniqueAnorganikUser = filterAnorganikbyUser.filter((item, index) => filterAnorganikbyUser.indexOf(item) === index);
+        else if (sampah === 'Anorganik' && req.user.role === 'Admin-Anorganik') {
+            const data = await BankSampah.aggregate(dataAggregatePipeline(req, sampah, sampah.toLowerCase()));
+            const allUserAnorganik = await BankSampah.aggregate([roleAggregatePipeline(req, sampah)]);
             res.status(200).json({
-                "Jumlah warga yang sudah memilah sampah" : uniqueAnorganikUser.length,
-                "Jumlah warga yang sudah menjadi nasabah" : users.length
+                "Jumlah warga yang sudah memilah sampah" : filterData(data,month,year).length,
+                "Jumlah warga yang sudah menjadi nasabah" : allUserAnorganik.length
             });
         }
+        else res.status(400).json({ message: "Please enter a valid type!" });
     }
     catch (error) {
         res.status(500).json(error.message);
@@ -162,7 +218,7 @@ exports.getRecap = async (req, res) => {
                 anorganik.tanggal = convertDateToMonthYear(anorganik.date);
             });
             const filteredAnorganik = banksampah.anorganik.filter(anorganik => anorganik.tanggal === `${month} ${year}`);
-            if (filteredAnorganik.length === 0) return res.status(204).json({ message: "No data found" });
+            if (filteredAnorganik.length === 0) return res.sendStatus(204)
             const result = filteredAnorganik.reduce((acc, item) => {
                 if (!acc[item.type]) {
                   acc[item.type] = 0;
@@ -178,6 +234,7 @@ exports.getRecap = async (req, res) => {
             const totalanorganik = groupedData.reduce((acc, item) => acc + item.mass, 0);
             
             const recap = await Recap.findOne({tanggal : `${month} ${year}`, banksampah : banksampah._id}).select('-_id -__v -tanggal -banksampah').lean();
+            if (recap === null) recap.organik_padat = recap.organik_cair = recap.organik_tatakura = recap.organik_bigester = 0;
             const totalorganik = recap.organik_padat + recap.organik_cair + recap.organik_tatakura + recap.organik_bigester;
             const totalbiopori = recap.biopori_jumbo + recap.biopori_komunal;
             res.status(200).json({
