@@ -25,6 +25,10 @@ const RecapSchema = new mongoose.Schema({
         type : Number,
         default : 0.0
     },
+    biopori_mandiri : {
+        type : Number,
+        default : 0.0
+    },
     ember_tumpuk : {
         type : Number,
         default : 0.0
