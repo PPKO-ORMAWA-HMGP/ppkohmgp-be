@@ -145,6 +145,7 @@ exports.updateRecap = async (req, res) => {
     }
 }
 
+// untuk admin
 exports.getRecap = async (req, res) => {
     const { sampah, month, year } = req.query;
     if (!month || !year || !sampah) return res.status(404).json({ message: "Please fill the field!" });
@@ -174,9 +175,18 @@ exports.getRecap = async (req, res) => {
                 type,
                 mass: result[type]
               }));
-
-            const recap = await Recap.findOne({tanggal : `${month} ${year}`, banksampah : banksampah._id}).select('-_id -__v -tanggal -banksampah');
-            res.status(200).json({anorganik : groupedData, recap});
+            const totalanorganik = groupedData.reduce((acc, item) => acc + item.mass, 0);
+            
+            const recap = await Recap.findOne({tanggal : `${month} ${year}`, banksampah : banksampah._id}).select('-_id -__v -tanggal -banksampah').lean();
+            const totalorganik = recap.organik_padat + recap.organik_cair + recap.organik_tatakura + recap.organik_bigester;
+            const totalbiopori = recap.biopori_jumbo + recap.biopori_komunal;
+            res.status(200).json({
+                anorganik : groupedData,
+                recap,
+                totalanorganik,
+                totalorganik,
+                totalbiopori
+                });
         }
         catch (error) {
             res.status(500).json({ message: error.message });
@@ -185,7 +195,11 @@ exports.getRecap = async (req, res) => {
 
     else if (req.user.role === 'Admin-Organik' && sampah === 'organik') {
         try {
-            const recap = await Recap.findOne({tanggal : `${month} ${year}`, banksampah : req.user.bankSampah}).select('-_id -__v -tanggal -banksampah');
+            const recap = await Recap.findOne({tanggal : `${month} ${year}`, banksampah : req.user.bankSampah}).select('-_id -__v -tanggal -banksampah').lean();
+            const totalorganik = recap.organik_padat + recap.organik_cair + recap.organik_tatakura + recap.organik_bigester;
+            const totalbiopori = recap.biopori_jumbo + recap.biopori_komunal;
+            recap.totalorganik = totalorganik;
+            recap.totalbiopori = totalbiopori;
             res.status(200).json(recap);
         }
         catch (error) {
