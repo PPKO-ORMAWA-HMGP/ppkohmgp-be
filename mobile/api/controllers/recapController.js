@@ -1,8 +1,6 @@
 const Recap = require ("../models/Recap");
 const {convertDateToMonthYear} = require("../services/convertDatetoTanggal")
 const BankSampah = require("../models/BankSampah");
-const Organik = require("../models/Organik");
-const Anorganik = require("../models/Anorganik");
 const mongoose = require("mongoose");
 
 exports.countNasabah = async (req, res) => {
