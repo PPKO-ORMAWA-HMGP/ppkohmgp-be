@@ -78,12 +78,17 @@ exports.loadUser = async (req, res) => {
 exports.updateUser = async (req,res) => {
     let session;
     const { username, fullname, phoneNumber } = req.body;
-    if (!username || !fullname || !phoneNumber) return res.status(400).json({ message: "Please fill all fields" });
+    if (!username && !fullname && !phoneNumber) return res.status(400).json({ message: "Please provide at least one field to update" });
+    const updateBody = {};
+    if (username) updateBody.username = username;
+    if (fullname) updateBody.fullname = fullname;
+    if (phoneNumber) updateBody.phoneNumber = phoneNumber;
     validatePhoneNumber(phoneNumber);
+    if (validatePhoneNumber(phoneNumber) === false) return res.status(400).json({ message: "Invalid phone number" });
     try {
         session = await mongoose.startSession();
         session.startTransaction();
-        const updatedUser = await User.findByIdAndUpdate(req.user._id, { username, fullname, phoneNumber}, { new: true }, {session});
+        const updatedUser = await User.findByIdAndUpdate(req.user._id, updateBody, { new: true }, {session});
         if (updatedUser) {
             const notification = new Notification({
                 title: "Pengaturan Profil Berhasil",
