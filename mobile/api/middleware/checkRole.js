@@ -130,3 +130,19 @@ exports.protectClient = async (req, res, next) => {
         res.status(500).json({ message: error.message });
     }
 }
+
+exports.protectNotification = async (req, res, next) => {
+    try {
+        const token = req.header(process.env.TOKEN_HEADER);
+        if (!token) return res.status(401).json({ message: "You are not logged in!" });
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
+            if (err) return res.status(401).json({ message: "Invalid Token" });
+            req.user = await User.findOne({_id : user._id}).select("-password -phoneNumber");
+            if (!req.user) return res.status(403).json({ message: "Forbidden" });
+            next();
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+}

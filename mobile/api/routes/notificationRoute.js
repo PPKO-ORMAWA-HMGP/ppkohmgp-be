@@ -1,8 +1,8 @@
 const {getAllNotification} = require("../controllers/notificationController");
-const {protectClient} = require("../middleware/checkRole");
+const {protectNotification} = require("../middleware/checkRole");
 const express = require("express");
 const router = express.Router();
 
-router.get("/", protectClient, getAllNotification);
+router.get("/", protectNotification, getAllNotification);
 
 module.exports = router;
