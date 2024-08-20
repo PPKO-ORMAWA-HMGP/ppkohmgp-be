@@ -29,6 +29,16 @@ exports.createOrganik = async (req, res) => {
         await organik.save({session});
         await User.findByIdAndUpdate(req.user.id, { $push: { organik: organik._id } }, { session });
         await BankSampah.findByIdAndUpdate(banksampah._id, { $push: { organik: organik._id } }, { session });
+        const admin = await User.findOne({role : "Admin-Organik", bankSampah : banksampah._id}).select('_id');
+        const adminNotification = new Notification({
+            title: "Verifikasi Organik",
+            message: "Permintaan Organik menunggu verifikasi",
+            date: Date.now() + 7 * 60 * 60 * 1000,
+            type: "add",
+            user: admin._id
+        });
+        await adminNotification.save({session});
+        await User.findByIdAndUpdate(admin._id, { $push: { notification: adminNotification._id } }, { session });
         await session.commitTransaction();
         res.status(201).json({ message: "Organik created successfully" });
     }
@@ -65,15 +75,24 @@ exports.verifyOrganik = async (req, res) => {
             session = await mongoose.startSession();
             session.startTransaction();
             await Organik.findByIdAndUpdate(req.params.id, { kriteria: "Diterima", poin : 1 }, { session });
-            const notification = new Notification ({
+            const userNotification = new Notification ({
                 title: "Sampah organik terkumpul",
                 message: "Poin organik berhasil didapatkan",
                 date: Date.now() + 7 * 60 * 60 * 1000,
                 type: "add",
                 user: new mongoose.Types.ObjectId(organik.user)
             });
-            await notification.save({session});
-            await User.findByIdAndUpdate(organik.user, { $inc: { point: 1 }, $push: { notification: notification._id } }, { session });
+            const adminNotification = new Notification({
+                title: "Verifikasi Organik",
+                message: "Organik berhasil diverifikasi",
+                date: Date.now() + 7 * 60 * 60 * 1000,
+                type: "add",
+                user: new mongoose.Types.ObjectId(req.user.id)
+            });
+            await userNotification.save({session});
+            await adminNotification.save({session});
+            await User.findByIdAndUpdate(req.user.id, { $push: { notification: adminNotification._id } }, { session });
+            await User.findByIdAndUpdate(organik.user, { $inc: { point: 1 }, $push: { notification: userNotification._id } }, { session });
             await session.commitTransaction();
             res.status(200).json({ message: "Organik verified successfully" });
         }
@@ -148,14 +167,6 @@ exports.tukarPoin = async (req, res) => {
         session = await mongoose.startSession();
         session.startTransaction();
         user.point -= poin;
-        const notification = await Notification.create({
-            title: "Penukaran poin organik",
-            message: "Poin organik berhasil ditukarkan dengan barang",
-            date: Date.now() + 7 * 60 * 60 * 1000,
-            type: "penukaran",
-            user: new mongoose.Types.ObjectId(id)
-        });
-        await notification.save({session});
         const organik = new Organik({
             date: Date.now() + 7 * 60 * 60 * 1000,
             tanggal: convertDateToDayMonthYear(Date.now() + 7 * 60 * 60 * 1000),
@@ -164,7 +175,24 @@ exports.tukarPoin = async (req, res) => {
             user: user._id
         });
         await organik.save({session});
-        await User.findByIdAndUpdate(id, { point: user.point, $push: {notification : notification._id}}, { session });
+        const userNotification = new Notification({
+            title: "Penukaran poin organik",
+            message: "Poin organik berhasil ditukarkan dengan barang",
+            date: Date.now() + 7 * 60 * 60 * 1000,
+            type: "penukaran",
+            user: new mongoose.Types.ObjectId(id)
+        });
+        await userNotification.save({session});
+        await User.findByIdAndUpdate(id, { point: user.point, $push: {notification : userNotification._id}}, { session });
+        const adminNotification = new Notification({
+            title: "Penukaran poin organik",
+            message: `User ${user.username} telah menukar poin organik sebesar ${poin}`,
+            date: Date.now() + 7 * 60 * 60 * 1000,
+            type: "penukaran",
+            user: req.user.id
+        }); 
+        await adminNotification.save({session});
+        await User.findByIdAndUpdate(req.user.id, { $push: { notification: adminNotification._id } }, { session });
         await session.commitTransaction();
         res.status(200).json({ message: "Point exchanged successfully" });
     }

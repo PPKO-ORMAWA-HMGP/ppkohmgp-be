@@ -44,17 +44,26 @@ exports.createAnorganik = async (req, res) => {
 
         //loop untuk masukin notifikasi dan user ke db
         for (let i = 0; i < newAnorganik.length; i++) {
-            const notification = new Notification({
+            const userNotification = new Notification({
                 title: "Sampah anorganik terkumpul",
                 message:`Saldo Anorganik anda bertambah sebesar Rp.${newAnorganik[i].price * newAnorganik[i].mass}`,
                 date : Date.now() + 7*60*60*1000,
                 type : "add",
                 user: new mongoose.Types.ObjectId(req.params.id)
             });
-            await notification.save({session});
+            const adminNotification = new Notification ({
+                title : "Verifikasi Anorganik",
+                message : `${user.username} telah menambahkan sampah anorganik sebesar Rp.${newAnorganik[i].price * newAnorganik[i].mass}`,
+                date : Date.now() + 7*60*60*1000,
+                type : "add",
+                user : new mongoose.Types.ObjectId(req.user.id)
+            })
+            await userNotification.save({session});
+            await adminNotification.save({session});
+            await User.findByIdAndUpdate(req.user._id, { $push: { notification: adminNotification._id } }, { session }); //masukin notifikasi ke admin
             await BankSampah.findByIdAndUpdate(bankSampah._id, { $push: { anorganik: newAnorganik[i]._id } }, { session });
             user.anorganik.push(newAnorganik[i]._id);
-            user.notification.push(notification._id);
+            user.notification.push(userNotification._id);
             user.balance += newAnorganik[i].price * newAnorganik[i].mass;
             await user.save({session});
         };
@@ -101,15 +110,24 @@ exports.tarikSaldo = async (req, res) => {
         session.startTransaction();
         if (user.balance < saldo) return res.status(400).json({ message: "Insufficient balance" });
         user.balance -= saldo;
-        const notification = new Notification({
+        const userNotification = new Notification({
             title: "Penarikan saldo anorganik",
             message: `Saldo anorganik berhasil ditarik`,
             date: Date.now() + 7 * 60 * 60 * 1000,
             type: "penarikan",
             user: new mongoose.Types.ObjectId(id)
         });
-        await notification.save({ session });
-        await User.findByIdAndUpdate(id, { balance : user.balance , $push: { notification: notification._id } }, { session });
+        await userNotification.save({ session });
+        await User.findByIdAndUpdate(id, { balance : user.balance , $push: { notification: userNotification._id } }, { session });
+        const adminNotification = new Notification ({
+            title : "Penarikan saldo anorganik",
+            message : `User ${user.username} telah menarik saldo anorganik sebesar Rp.${saldo}`,
+            date : Date.now() + 7*60*60*1000,
+            type : "penarikan",
+            user : new mongoose.Types.ObjectId(req.user.id)
+        });
+        await adminNotification.save({ session });
+        await User.findByIdAndUpdate(req.user.id, { $push: { notification: adminNotification._id } }, { session });
         await session.commitTransaction();
         res.status(200).json({ message: "Saldo anorganik berhasil ditarik" });
     }
