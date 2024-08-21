@@ -23,12 +23,18 @@ exports.login = async (req, res) => {
             }, 
             process.env.ACCESS_TOKEN_SECRET,
             { 
-                expiresIn : "1w",
+                expiresIn : "168h",
                 issuer : process.env.TOKEN_ISSUER
             }
         );
-        const expiredDate = convertDateToDayMonthYear(Date.now() + 175 * 60 * 60 * 1000);
-        res.status(200).json({ username : foundUser.username, fullname: foundUser.fullname, role: foundUser.role , token , expiredDate });
+        const expiredDate = convertDateToDayMonthYear(Date.now() + 168 * 60 * 60 * 1000);
+        res.status(200).json({ 
+            username : foundUser.username, 
+            fullname: foundUser.fullname, 
+            role: foundUser.role, 
+            token, 
+            expiredDate
+        });
     }
     catch (error) {
         res.status(500).json({ message: error.message });
