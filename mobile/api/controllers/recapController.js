@@ -89,8 +89,6 @@ exports.countNasabah = async (req, res) => {
         if (sampah === 'Organik' && req.user.role === 'Admin-Organik') {
             const data = await BankSampah.aggregate(dataAggregatePipeline(req, sampah, sampah.toLowerCase()));
             const filterKriteria = data.filter(data => data.kriteria === 'Diterima');
-            console.log(filterKriteria)
-            console.log(filterData(filterKriteria, month, year))
             const allUserOrganik = await BankSampah.aggregate(roleAggregatePipeline(req, sampah));
             res.status(200).json({
                 "Jumlah warga yang sudah memilah sampah" : filterData(filterKriteria, month, year).length,
@@ -99,7 +97,6 @@ exports.countNasabah = async (req, res) => {
         }
         else if (sampah === 'Anorganik' && req.user.role === 'Admin-Anorganik') {
             const data = await BankSampah.aggregate(dataAggregatePipeline(req, sampah, sampah.toLowerCase()));
-            console.log(data);
             const allUserAnorganik = await BankSampah.aggregate([roleAggregatePipeline(req, sampah)]);
             res.status(200).json({
                 "Jumlah warga yang sudah memilah sampah" : filterData(data,month,year).length,
@@ -118,8 +115,6 @@ exports.sendRecap = async (req, res) => {
     const {
         organik_padat,
         organik_cair,
-        organik_tatakura,
-        organik_bigester,
         biopori_jumbo,
         biopori_komunal,
         biopori_mandiri,
@@ -134,8 +129,6 @@ exports.sendRecap = async (req, res) => {
         const recap = new Recap({
             organik_padat,
             organik_cair,
-            organik_tatakura,
-            organik_bigester,
             biopori_jumbo,
             biopori_komunal,
             biopori_mandiri,
@@ -164,8 +157,6 @@ exports.updateRecap = async (req, res) => {
     const {
         organik_padat,
         organik_cair,
-        organik_tatakura,
-        organik_bigester,
         biopori_jumbo,
         biopori_komunal,
         biopori_mandiri,
@@ -184,8 +175,6 @@ exports.updateRecap = async (req, res) => {
         const recap = await Recap.findOneAndUpdate(filter, {
             organik_padat,
             organik_cair,
-            organik_tatakura,
-            organik_bigester,
             biopori_jumbo,
             biopori_komunal,
             biopori_mandiri,
@@ -239,8 +228,8 @@ exports.getRecap = async (req, res) => {
             const totalanorganik = groupedData.reduce((acc, item) => acc + item.mass, 0);
             
             const recap = await Recap.findOne({tanggal : `${month} ${year}`, banksampah : banksampah._id}).select('-_id -__v -tanggal -banksampah').lean();
-            if (recap === null) recap.organik_padat = recap.organik_cair = recap.organik_tatakura = recap.organik_bigester = 0;
-            const totalorganik = recap.organik_padat + recap.organik_cair + recap.organik_tatakura + recap.organik_bigester;
+            if (recap === null) recap.organik_padat = recap.organik_cair = 0;
+            const totalorganik = recap.organik_padat + recap.organik_cair;
             const totalbiopori = recap.biopori_jumbo + recap.biopori_komunal + recap.biopori_mandiri;
             res.status(200).json({
                 anorganik : groupedData,
@@ -258,7 +247,7 @@ exports.getRecap = async (req, res) => {
     else if (req.user.role === 'Admin-Organik' && sampah === 'organik') {
         try {
             const recap = await Recap.findOne({tanggal : `${month} ${year}`, banksampah : req.user.bankSampah}).select('-_id -__v -tanggal -banksampah').lean();
-            const totalorganik = recap.organik_padat + recap.organik_cair + recap.organik_tatakura + recap.organik_bigester;
+            const totalorganik = recap.organik_padat + recap.organik_cair;
             const totalbiopori = recap.biopori_jumbo + recap.biopori_komunal;
             recap.totalorganik = totalorganik;
             recap.totalbiopori = totalbiopori;

@@ -4,7 +4,7 @@ const AnorganikSchema = new mongoose.Schema({
     type: {
         type: String,
         required: true,
-        enum: ['Plastik', 'Kertas', 'Logam', 'Kaca', 'Jelantah', 'Lain-lain']
+        enum: ['Plastik', 'Kertas', 'Logam', 'Kaca', 'Lain-lain']
     },
     description : {
         type : String,

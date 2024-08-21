@@ -23,7 +23,7 @@ exports.createAnorganik = async (req, res) => {
     //loop untuk nyimpen data anorganik ke variabel buffer
     for (let i = 0; i < req.body.length; i++) {
         if (!req.body[i].type || !req.body[i].description) return res.status(400).json({ message: "Please fill all fields" });
-        if (req.body[i].type !== "Plastik" && req.body[i].type !== "Kertas" && req.body[i].type !== "Logam" && req.body[i].type !== "Kaca" && req.body[i].type !== 'Jelantah' && req.body[i].type !== "Lain-lain") return res.status(400).json({ message: "Enter a valid type!" });
+        if (req.body[i].type !== "Plastik" && req.body[i].type !== "Kertas" && req.body[i].type !== "Logam" && req.body[i].type !== "Kaca" && req.body[i].type !== "Lain-lain") return res.status(400).json({ message: "Enter a valid type!" });
         if (req.body[i].price <= 0 || req.body[i].mass <= 0) return res.status(400).json({ message: "Price or mass must be positive" });
         const anorganik = new Anorganik({
             type: req.body[i].type,
@@ -38,9 +38,7 @@ exports.createAnorganik = async (req, res) => {
     try {
         session = await mongoose.startSession();
         session.startTransaction();
-        // Cek Anorganik masuk ga
-        const newAnorganik = await Anorganik.insertMany(buffer);
-        if (!newAnorganik) return res.status(400).json({ message: "Anorganik not created" });
+        const newAnorganik = await Anorganik.insertMany(buffer, { session });
 
         //loop untuk masukin notifikasi dan user ke db
         for (let i = 0; i < newAnorganik.length; i++) {
