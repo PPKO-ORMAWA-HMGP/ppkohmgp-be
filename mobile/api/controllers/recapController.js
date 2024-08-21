@@ -119,6 +119,8 @@ exports.sendRecap = async (req, res) => {
         biopori_jumbo,
         biopori_komunal,
         biopori_mandiri,
+        organik_mandiri,
+        residu_plastik,
         ember_tumpuk,
         iosida,
         jelantah,
@@ -136,6 +138,8 @@ exports.sendRecap = async (req, res) => {
             biopori_jumbo,
             biopori_komunal,
             biopori_mandiri,
+            organik_mandiri,
+            residu_plastik,
             ember_tumpuk,
             iosida,
             jelantah,
@@ -167,6 +171,8 @@ exports.updateRecap = async (req, res) => {
         biopori_jumbo,
         biopori_komunal,
         biopori_mandiri,
+        organik_mandiri,
+        residu_plastik,
         ember_tumpuk,
         iosida,
         jelantah,
@@ -188,6 +194,8 @@ exports.updateRecap = async (req, res) => {
             biopori_jumbo,
             biopori_komunal,
             biopori_mandiri,
+            organik_mandiri,
+            residu_plastik,
             ember_tumpuk,
             iosida,
             jelantah,
@@ -239,17 +247,15 @@ exports.getRecap = async (req, res) => {
             const totalanorganik = groupedData.reduce((acc, item) => acc + item.mass, 0);
             
             const recap = await Recap.findOne({tanggal : `${month} ${year}`, banksampah : banksampah._id}).select('-_id -__v -tanggal -banksampah').lean();
-            if (recap === null) recap.organik_padat = recap.organik_cair = recap.biopori_jumbo = recap.biopori_komunal = recap.biopori_mandiri = recap.ember_tumpuk = recap.iosida = recap.jelantah = recap.bagor = recap.nasi_kering = 0;
+            if (recap === null) recap.organik_padat = recap.organik_cair = recap.biopori_jumbo = recap.biopori_komunal = recap.biopori_mandiri = recap.organik_mandiri = recap.residu_plastik = recap.ember_tumpuk = recap.iosida = recap.jelantah = recap.bagor = recap.nasi_kering = 0;
             const totalorganik = recap.organik_padat + recap.organik_cair;
             const totalbiopori = recap.biopori_jumbo + recap.biopori_komunal + recap.biopori_mandiri;
-            const total_lain_lain = recap.ember_tumpuk + recap.iosida + recap.jelantah + recap.bagor + recap.nasi_kering;
             res.status(200).json({
                 anorganik : groupedData,
                 recap,
                 totalanorganik,
                 totalorganik,
                 totalbiopori,
-                total_lain_lain
                 });
         }
         catch (error) {
@@ -262,10 +268,8 @@ exports.getRecap = async (req, res) => {
             const recap = await Recap.findOne({tanggal : `${month} ${year}`, banksampah : req.user.bankSampah}).select('-_id -__v -tanggal -banksampah').lean();
             const totalorganik = recap.organik_padat + recap.organik_cair;
             const totalbiopori = recap.biopori_jumbo + recap.biopori_komunal;
-            const total_lain_lain = recap.biopori_mandiri + recap.ember_tumpuk + recap.iosida + recap.jelantah + recap.bagor + recap.nasi_kering;
             recap.totalorganik = totalorganik;
             recap.totalbiopori = totalbiopori;
-            recap.total_lain_lain = total_lain_lain;
             res.status(200).json(recap);
         }
         catch (error) {
