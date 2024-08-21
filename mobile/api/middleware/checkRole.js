@@ -2,147 +2,58 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 require('dotenv').config();
 
-exports.protectAdmin = async (req, res, next) => {
+const verifyToken = async (req, res, next, roles) => {
     try {
         const token = req.header(process.env.TOKEN_HEADER);
-        if (!token) return res.status(401).json({ message: "You are not logged in!" });
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, { issuer : process.env.TOKEN_ISSUER }, async (err, user) => {
-            if (err) return res.status(401).json({ message: "Invalid Token" });
-            req.user = await User.findOne({
-                $or:[{
-                    $and: [{
-                            _id: user._id
-                        },
-                        {
-                            role: "Admin-Organik"
-                        }]
-                    }, 
-                    {$and: [{
-                            _id: user._id
-                        }, 
-                        {
-                            role: "Admin-Anorganik"
-                        }]
-                    }]
-                })
-                .select("-password -phoneNumber");
-            if (!req.user) return res.status(403).json({ message: "Forbidden" });
-            next();
-        });
-    }
-    catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
+        if (!token) {
+            return res.status(401).json({ message: "You are not logged in!" });
+        }
 
-exports.protectAdminOrganik = async (req, res, next) => {
-    try {
-        const token = req.header(process.env.TOKEN_HEADER);
-        if (!token) return res.status(401).json({ message: "You are not logged in!" });
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, { issuer : process.env.TOKEN_ISSUER }, async (err, user) => {
-            if (err) return res.status(401).json({ message: "Invalid Token" });
-            req.user = await User.findOne({$and: [{_id: user._id}, {role: "Admin-Organik"}]}).select("-password -phoneNumber");
-            if (!req.user) return res.status(403).json({ message: "Forbidden" });
-            next();
-        });
-    }
-    catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, { issuer: process.env.TOKEN_ISSUER }, async (err, user) => {
+            if (err) {
+                return res.status(401).json({ message: "Invalid Token" });
+            }
 
-exports.protectAdminAnorganik = async (req, res, next) => {
-    try {
-        const token = req.header(process.env.TOKEN_HEADER);
-        if (!token) return res.status(401).json({ message: "You are not logged in!" });
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
-            if (err) return res.status(401).json({ message: "Invalid Token" });
-            req.user = await User.findOne({$and: [{_id: user._id}, {role: "Admin-Anorganik"}]}).select("-password -phoneNumber");
-            if (!req.user) return res.status(403).json({ message: "Forbidden" });
-            next();
-        });
-    }
-    catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
+            const query = { _id: user._id };
+            if (roles) {
+                query.role = { $in: roles };
+            }
 
-exports.protectOrganik = async (req, res, next) => {
-    try {
-        const token = req.header(process.env.TOKEN_HEADER);
-        if (!token) return res.status(401).json({ message: "You are not logged in!" });
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
-            if (err) return res.status(401).json({ message: "Invalid Token" });
-            req.user = await User.findOne({$and: [{_id: user._id}, {role: "Organik"}]}).select("-password -phoneNumber");
-            if (!req.user) return res.status(403).json({ message: "Forbidden" });
+            req.user = await User.findOne(query).select("-password -phoneNumber");
+            if (!req.user) {
+                return res.status(403).json({ message: "Forbidden" });
+            }
             next();
         });
-    }
-    catch (error) {
+    } catch (error) {
         res.status(500).json({ message: error.message });
     }
-}
+};
 
-exports.protectAnorganik = async (req, res, next) => {
-    try {
-        const token = req.header(process.env.TOKEN_HEADER);
-        if (!token) return res.status(401).json({ message: "You are not logged in!" });
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
-            if (err) return res.status(401).json({ message: "Invalid Token" });
-            req.user = await User.findOne({$and: [{_id: user._id}, {role: "Anorganik"}]}).select("-password -phoneNumber");
-            if (!req.user) return res.status(403).json({ message: "Forbidden" });
-            next();
-        });
-    }
-    catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
+exports.protectAdmin = (req, res, next) => {
+    verifyToken(req, res, next, ["Admin-Organik", "Admin-Anorganik"]);
+};
 
-exports.protectClient = async (req, res, next) => {
-    try {
-        const token = req.header(process.env.TOKEN_HEADER);
-        if (!token) return res.status(401).json({ message: "You are not logged in!" });
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
-            if (err) return res.status(401).json({ message: "Invalid Token" });
-            req.user = await User.findOne({
-                $or:[{
-                    $and: [{
-                            _id: user._id
-                        },
-                        {
-                            role: "Organik"
-                        }]
-                    }, 
-                    {$and: [{
-                            _id: user._id
-                        }, 
-                        {
-                            role: "Anorganik"
-                        }]
-                    }]
-                }).select("-password -phoneNumber");
-            if (!req.user) return res.status(403).json({ message: "Forbidden" });
-            next();
-        });
-    }
-    catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
+exports.protectAdminOrganik = (req, res, next) => {
+    verifyToken(req, res, next, ["Admin-Organik"]);
+};
 
-exports.protectNotification = async (req, res, next) => {
-    try {
-        const token = req.header(process.env.TOKEN_HEADER);
-        if (!token) return res.status(401).json({ message: "You are not logged in!" });
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, async (err, user) => {
-            if (err) return res.status(401).json({ message: "Invalid Token" });
-            req.user = await User.findOne({_id : user._id}).select("-password -phoneNumber");
-            if (!req.user) return res.status(403).json({ message: "Forbidden" });
-            next();
-        });
-    }
-    catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-}
+exports.protectAdminAnorganik = (req, res, next) => {
+    verifyToken(req, res, next, ["Admin-Anorganik"]);
+};
+
+exports.protectOrganik = (req, res, next) => {
+    verifyToken(req, res, next, ["Organik"]);
+};
+
+exports.protectAnorganik = (req, res, next) => {
+    verifyToken(req, res, next, ["Anorganik"]);
+};
+
+exports.protectClient = (req, res, next) => {
+    verifyToken(req, res, next, ["Organik", "Anorganik"]);
+};
+
+exports.protectNotification = (req, res, next) => {
+    verifyToken(req, res, next);
+};
