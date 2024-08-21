@@ -20,6 +20,7 @@ exports.createOrganik = async (req, res) => {
         session.startTransaction();
         const tanggal = convertDateToDayMonthYear(Date.now() + 7 * 60 * 60 * 1000);
         const response = await uploadFile(tanggal, req.user.fullname, files[0]);
+        if (!response || !response.id) return res.status(400).json({ message: "Failed to upload image" });
         const organik = new Organik({
             image : response.id,
             date: Date.now() + 7 * 60 * 60 * 1000,
