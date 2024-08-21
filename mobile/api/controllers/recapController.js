@@ -3,7 +3,6 @@ const {convertDateToMonthYear} = require("../services/convertDatetoTanggal")
 const BankSampah = require("../models/BankSampah");
 const mongoose = require("mongoose");
 
-
 //modular function for countNasabah
 const filterData = (data, month, year) => {
     const filterOrganikbyMonthYear = data.filter(data => convertDateToMonthYear(data.date) === `${month} ${year}`)
@@ -11,6 +10,7 @@ const filterData = (data, month, year) => {
     const uniqueOrganikUser = filterOrganikbyUser.filter((item, index) => filterOrganikbyUser.indexOf(item) === index);
     return uniqueOrganikUser;
 }
+
 //modular function for countNasabah
 const dataAggregatePipeline = (req, sampah, sampahLower) => {
     return [
@@ -51,6 +51,7 @@ const dataAggregatePipeline = (req, sampah, sampahLower) => {
         }
     ]
 }
+
 //modular function for countNasabah
 const roleAggregatePipeline = (req, sampah) => {
     return [
@@ -119,7 +120,10 @@ exports.sendRecap = async (req, res) => {
         biopori_komunal,
         biopori_mandiri,
         ember_tumpuk,
-        iosida
+        iosida,
+        jelantah,
+        bagor,
+        nasi_kering
     } = req.body
     const banksampah = await BankSampah.findById(req.user.bankSampah).select('name');
     const tanggal = convertDateToMonthYear(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -134,6 +138,9 @@ exports.sendRecap = async (req, res) => {
             biopori_mandiri,
             ember_tumpuk,
             iosida,
+            jelantah,
+            bagor,
+            nasi_kering,
             tanggal,
             banksampah
         });
@@ -161,7 +168,10 @@ exports.updateRecap = async (req, res) => {
         biopori_komunal,
         biopori_mandiri,
         ember_tumpuk,
-        iosida
+        iosida,
+        jelantah,
+        bagor,
+        nasi_kering,
     } = req.body
     const banksampah = await BankSampah.findById(req.user.bankSampah).select('name')
     const tanggal = convertDateToMonthYear(Date.now() + 7 * 24 * 60 * 60 * 1000);
@@ -180,8 +190,9 @@ exports.updateRecap = async (req, res) => {
             biopori_mandiri,
             ember_tumpuk,
             iosida,
-            tanggal,
-            banksampah
+            jelantah,
+            bagor,
+            nasi_kering
         }, {session});
         if (!recap) return res.status(404).json({message : "Recap not found"});
         await session.commitTransaction();
@@ -228,15 +239,17 @@ exports.getRecap = async (req, res) => {
             const totalanorganik = groupedData.reduce((acc, item) => acc + item.mass, 0);
             
             const recap = await Recap.findOne({tanggal : `${month} ${year}`, banksampah : banksampah._id}).select('-_id -__v -tanggal -banksampah').lean();
-            if (recap === null) recap.organik_padat = recap.organik_cair = 0;
+            if (recap === null) recap.organik_padat = recap.organik_cair = recap.biopori_jumbo = recap.biopori_komunal = recap.biopori_mandiri = recap.ember_tumpuk = recap.iosida = recap.jelantah = recap.bagor = recap.nasi_kering = 0;
             const totalorganik = recap.organik_padat + recap.organik_cair;
             const totalbiopori = recap.biopori_jumbo + recap.biopori_komunal + recap.biopori_mandiri;
+            const total_lain_lain = recap.ember_tumpuk + recap.iosida + recap.jelantah + recap.bagor + recap.nasi_kering;
             res.status(200).json({
                 anorganik : groupedData,
                 recap,
                 totalanorganik,
                 totalorganik,
-                totalbiopori
+                totalbiopori,
+                total_lain_lain
                 });
         }
         catch (error) {
@@ -249,8 +262,10 @@ exports.getRecap = async (req, res) => {
             const recap = await Recap.findOne({tanggal : `${month} ${year}`, banksampah : req.user.bankSampah}).select('-_id -__v -tanggal -banksampah').lean();
             const totalorganik = recap.organik_padat + recap.organik_cair;
             const totalbiopori = recap.biopori_jumbo + recap.biopori_komunal;
+            const total_lain_lain = recap.biopori_mandiri + recap.ember_tumpuk + recap.iosida + recap.jelantah + recap.bagor + recap.nasi_kering;
             recap.totalorganik = totalorganik;
             recap.totalbiopori = totalbiopori;
+            recap.total_lain_lain = total_lain_lain;
             res.status(200).json(recap);
         }
         catch (error) {

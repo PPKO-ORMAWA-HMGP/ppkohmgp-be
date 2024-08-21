@@ -29,6 +29,18 @@ const RecapSchema = new mongoose.Schema({
         type : Number,
         default : 0.0
     },
+    jelantah : {
+        type : Number,
+        default : 0.0
+    },
+    bagor : {
+        type : Number,
+        default : 0.0
+    },
+    nasi_kering : {
+        type : Number,
+        default : 0.0
+    },
     tanggal : {
         type : String,
     },
