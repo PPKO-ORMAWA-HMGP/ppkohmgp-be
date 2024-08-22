@@ -124,7 +124,6 @@ exports.getUser = async (req, res) => {
                     select : 'description price date mass'
                 })
                 .select('fullname username -_id');
-            if (user.anorganik.length === 0) return res.status(404).json({ message: "User not Anorganik" });
             user.anorganik.forEach(anorganik => {
                 anorganik.price = anorganik.price * anorganik.mass;
             })
@@ -158,7 +157,6 @@ exports.getUser = async (req, res) => {
                     match : { kriteria : 'Diterima' }
                 })
                 .select('fullname username -_id');
-            if (user.organik.length === 0) return res.status(404).json({ message: "User not Organik" });
             const data = {
                 fullname: user.fullname,
                 username: user.username,
