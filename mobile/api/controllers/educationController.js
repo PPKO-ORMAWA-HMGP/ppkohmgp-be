@@ -94,7 +94,7 @@ exports.deleteEducation = async (req, res) => {
         const result = await Education.findByIdAndDelete(req.params.id, {session});
         if (!result) return res.status(400).json({ message: "Already deleted" });
         await session.commitTransaction();
-        res.status(204).json({ message: "Education deleted successfully" });
+        res.status(200).json({ message: "Education deleted successfully" });
     }
     catch (error) {
         await session.abortTransaction();

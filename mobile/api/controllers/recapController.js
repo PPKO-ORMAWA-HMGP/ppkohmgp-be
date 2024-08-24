@@ -2,85 +2,14 @@ const Recap = require ("../models/Recap");
 const {convertDateToMonthYear} = require("../services/convertDatetoTanggal")
 const BankSampah = require("../models/BankSampah");
 const mongoose = require("mongoose");
+const {
+    dataAggregatePipeline,
+    roleAggregatePipeline,
+    filterData,
+} = require("../utils/recapAggregate");
+let {recapData} = require("../utils/recapAggregate");
 
-//modular function for countNasabah
-const filterData = (data, month, year) => {
-    const filterOrganikbyMonthYear = data.filter(data => convertDateToMonthYear(data.date) === `${month} ${year}`)
-    const filterOrganikbyUser = filterOrganikbyMonthYear.map(organik => organik.user.toString());
-    const uniqueOrganikUser = filterOrganikbyUser.filter((item, index) => filterOrganikbyUser.indexOf(item) === index);
-    return uniqueOrganikUser;
-}
-
-//modular function for countNasabah
-const dataAggregatePipeline = (req, sampah, sampahLower) => {
-    return [
-        {
-            $match : { _id : req.user.bankSampah }
-        },
-        {
-            $lookup : {
-                from : 'users',
-                localField : 'users',
-                foreignField : '_id',
-                as : 'users'
-            }
-        },
-        {
-            $unwind : '$users'
-        },
-        {
-            $match : { 'users.role' : sampah }
-        },
-        {
-            $lookup : {
-                from : `${sampahLower}s`,
-                localField : `${sampahLower}`,
-                foreignField : '_id',
-                as : `${sampahLower}`
-            }
-        },
-        {
-            $unwind : `$${sampahLower}`
-        },   
-        {
-            $project : {
-                date : `$${sampahLower}.date`,
-                user : `$${sampahLower}.user`,
-                kriteria : `$${sampahLower}.kriteria`,
-            }
-        }
-    ]
-}
-
-//modular function for countNasabah
-const roleAggregatePipeline = (req, sampah) => {
-    return [
-        {
-            $match : { _id : req.user.bankSampah }
-        },
-        {
-            $lookup : {
-                from : 'users',
-                localField : 'users',
-                foreignField : '_id',
-                as : 'users'
-            }
-        },
-        {
-            $unwind : '$users'
-        },
-        {
-            $match : { 'users.role' : sampah }
-        },
-        {
-            $project : {
-                user : '$users._id',
-                _id : 0
-            }
-        }
-    ]
-}   
-
+//berhasil refactor
 exports.countNasabah = async (req, res) => {
     const { month, year } = req.query;
     let { sampah } = req.query;
@@ -111,40 +40,17 @@ exports.countNasabah = async (req, res) => {
     }
 }
 
+//berhasil refactor
 exports.sendRecap = async (req, res) => {
     let session;
-    const {
-        organik_padat,
-        organik_cair,
-        biopori_jumbo,
-        biopori_komunal,
-        biopori_mandiri,
-        organik_mandiri,
-        residu_plastik,
-        ember_tumpuk,
-        iosida,
-        jelantah,
-        bagor,
-        nasi_kering
-    } = req.body
+    recapData = req.body
     const banksampah = await BankSampah.findById(req.user.bankSampah).select('name');
     const tanggal = convertDateToMonthYear(Date.now() + 7 * 24 * 60 * 60 * 1000);
     try {
         session = await mongoose.startSession();
         session.startTransaction();
         const recap = new Recap({
-            organik_padat,
-            organik_cair,
-            biopori_jumbo,
-            biopori_komunal,
-            biopori_mandiri,
-            organik_mandiri,
-            residu_plastik,
-            ember_tumpuk,
-            iosida,
-            jelantah,
-            bagor,
-            nasi_kering,
+            recapData,
             tanggal,
             banksampah
         });
@@ -163,22 +69,10 @@ exports.sendRecap = async (req, res) => {
     }
 }
 
+//berhasil refactor
 exports.updateRecap = async (req, res) => {
     let session;
-    const {
-        organik_padat,
-        organik_cair,
-        biopori_jumbo,
-        biopori_komunal,
-        biopori_mandiri,
-        organik_mandiri,
-        residu_plastik,
-        ember_tumpuk,
-        iosida,
-        jelantah,
-        bagor,
-        nasi_kering,
-    } = req.body
+    recapData = req.body
     const banksampah = await BankSampah.findById(req.user.bankSampah).select('name')
     const tanggal = convertDateToMonthYear(Date.now() + 7 * 24 * 60 * 60 * 1000);
     try {
@@ -188,20 +82,7 @@ exports.updateRecap = async (req, res) => {
             tanggal,
             banksampah : banksampah._id
         };
-        const recap = await Recap.findOneAndUpdate(filter, {
-            organik_padat,
-            organik_cair,
-            biopori_jumbo,
-            biopori_komunal,
-            biopori_mandiri,
-            organik_mandiri,
-            residu_plastik,
-            ember_tumpuk,
-            iosida,
-            jelantah,
-            bagor,
-            nasi_kering
-        }, {session});
+        const recap = await Recap.findOneAndUpdate(filter, recapData, {session});
         if (!recap) return res.status(404).json({message : "Recap not found"});
         await session.commitTransaction();
         res.status(200).json({message : `Berhasil mengupdate data recap pada ${banksampah.name} untuk ${tanggal}`});
@@ -231,7 +112,7 @@ exports.getRecap = async (req, res) => {
                 anorganik.tanggal = convertDateToMonthYear(anorganik.date);
             });
             const filteredAnorganik = banksampah.anorganik.filter(anorganik => anorganik.tanggal === `${month} ${year}`);
-            if (filteredAnorganik.length === 0) return res.sendStatus(204)
+            if (filteredAnorganik.length === 0) return res.status(200).json({ message: "Data not found" });
             const result = filteredAnorganik.reduce((acc, item) => {
                 if (!acc[item.type]) {
                   acc[item.type] = 0;

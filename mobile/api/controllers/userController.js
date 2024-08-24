@@ -3,14 +3,8 @@ const BankSampah = require('../models/BankSampah');
 const Notification = require('../models/Notification');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
-
-const validatePhoneNumber = (phoneNumber) => {
-    if (typeof(phoneNumber) !== "string") return false;
-    if (phoneNumber.length < 10 || phoneNumber.length >= 13) return false;
-    if (phoneNumber[0] !== "0") return false;
-    if (phoneNumber.match(/[^0-9]/)) return false;
-    return true;
-}
+const {validatePhoneNumber}  = require('../utils/phoneValidator');
+const {getUserAnorganikAggregate,getUserOrganikAggregate} = require('../utils/userAggregate')
 
 // dah bener
 exports.registerUser = async (req, res) => {
@@ -20,7 +14,7 @@ exports.registerUser = async (req, res) => {
     if (!username || !fullname || !phoneNumber || !password || !bankSampah || !role) return res.status(400).json({ message: "Please fill all fields" });
     if (password.length < 6) return res.status(400).json({ message: "Password must be at least 6 characters" });
     validatePhoneNumber(phoneNumber);
-    if (validatePhoneNumber(phoneNumber) === false) return res.status(400).json({ message: "Invalid phone number" });
+    if (validatePhoneNumber(phoneNumber) !== true) return res.status(400).json({ message: validatePhoneNumber(phoneNumber) });
 
     // kalo user sudah ada
     const user = await User.findOne({ phoneNumber });
@@ -115,54 +109,27 @@ exports.updateUser = async (req,res) => {
 //Untuk liat rekap nasabah dari daftar nasabah di sisi admin
 // dah bener
 exports.getUser = async (req, res) => {
-    const role = req.user.role;
-    if (role === "Admin-Anorganik") {
+    const adminRole = req.user.role;
+    const id = new mongoose.Types.ObjectId(req.params.id);
+    const {role} = await User.findById(req.params.id).select('role -_id');
+    if (adminRole === "Admin-Anorganik" && role === "Anorganik") {
         try {
-            const user = await User.findById(req.params.id)
-                .populate({
-                    path: 'anorganik',
-                    select : 'description price date mass'
-                })
-                .select('fullname username -_id');
-            user.anorganik.forEach(anorganik => {
-                anorganik.price = anorganik.price * anorganik.mass;
-            })
-            const filteredAnorganik = user.anorganik.map(item => ({
-                description: item.description,
-                mass: item.mass,
-                price: item.price
-            }));
-            const filteredUser = {
-                fullname: user.fullname,
-                username: user.username,
-                anorganik: filteredAnorganik
-            }
-            let totalAnorganikMass = 0;
-            for (i = 0; i < user.anorganik.length; i++) {
-                totalAnorganikMass += user.anorganik[i].mass;
-            }
-            if (!user) return res.status(404).json({ message: "User not found" });
-            res.status(200).json({...filteredUser,"totalanorganik": `${user.anorganik.length} kali`, "massanorganik": `${totalAnorganikMass} kg`});
+            const data = await User.aggregate(getUserAnorganikAggregate(id, role));
+            const [response] = data;
+            response.totalanorganik = `${response.totalanorganik} kali`;
+            response.massanorganik = `${response.massanorganik} kg`;
+            res.status(200).json(response);
         }
         catch (error) {
             res.status(500).json({ message: error.message });
         }
     }
-    else if (role === "Admin-Organik") {
+    else if (adminRole === "Admin-Organik" && role === "Organik") {
         try {
-            const user = await User.findById(req.params.id)
-                .populate({
-                    path : 'organik',
-                    select : 'kriteria',
-                    match : { kriteria : 'Diterima' }
-                })
-                .select('fullname username -_id');
-            const data = {
-                fullname: user.fullname,
-                username: user.username,
-                totalanorganik : `${user.organik.length} kali`
-            }
-            res.status(200).json(data);
+            const data = await User.aggregate(getUserOrganikAggregate(id, role));
+            const [response] = data;
+            response.totalorganik = `${response.totalorganik} kali`;
+            res.status(200).json(response);
         }
         catch (error) {
             res.status(500).json({ message: error.message });

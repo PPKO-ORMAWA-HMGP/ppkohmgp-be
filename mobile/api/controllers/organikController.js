@@ -142,7 +142,7 @@ exports.riwayatOrganik = async (req, res) => {
             })
             .select('poin date tanggal kriteria type')
             .sort({date: -1})
-        if (organiks.length === 0) return res.status(204).json({ message: "User ini belum mengumpulkan organik" });
+        if (organiks.length === 0) return res.status(200).json({ message: "User ini belum mengumpulkan organik" });
         organiks.forEach(organik => {
             if (organik.kriteria === "Diterima") organik.type = "Tambah Poin";
             else organik.type = "Tukar Poin";
