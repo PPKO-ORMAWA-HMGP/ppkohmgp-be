@@ -28,7 +28,6 @@ app.use("/banksampah", require("./api/routes/banksampahRoute"));
 app.use("/education", require("./api/routes/educationRoute"));
 app.use("/recap", require("./api/routes/recapRoute"));
 
-let server;
 //Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI,
     {
@@ -37,7 +36,7 @@ mongoose.connect(process.env.MONGODB_URI,
 ).
 then(() => {
     console.log("MongoDB Connected");
-    server = app.listen(0, "0.0.0.0", () => {
+    app.listen(0, () => {
         console.log(`Server is running`);
     });
 }).catch((err) => {
