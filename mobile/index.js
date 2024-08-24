@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const app = express();
+const PORT = process.env.PORT || 3500;
 
 // Express body parser
 app.use(express.json());
@@ -27,6 +28,7 @@ app.use("/banksampah", require("./api/routes/banksampahRoute"));
 app.use("/education", require("./api/routes/educationRoute"));
 app.use("/recap", require("./api/routes/recapRoute"));
 
+let server;
 //Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI,
     {
@@ -35,8 +37,8 @@ mongoose.connect(process.env.MONGODB_URI,
 ).
 then(() => {
     console.log("MongoDB Connected");
-    app.listen(process.env.PORT, () => {
-        console.log(`Server is running on port ${process.env.PORT}`);
+    server = app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
     });
 }).catch((err) => {
     console.error(err);
